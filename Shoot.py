@@ -267,7 +267,7 @@ class ShootingResults:
     
     def begin_shooting(self):
         #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_before.jpg")
-        full_image_path = "sample/ak1.JPG"
+        full_image_path = "sample/DSC_0026NL.jpg"
         full_image = cv2.imread(full_image_path)
         #cv2.imshow('png',full_image)
         cropped_images = self.cropImage(full_image)
@@ -289,7 +289,7 @@ class ShootingResults:
     path: save path of resulting image for each target'''
     def end_shooting(self):
         #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_before.jpg")
-        full_image_path = "sample/ak2.JPG"
+        full_image_path = "sample/DSC_0027NL.jpg"
         full_image = cv2.imread(full_image_path)
         cropped_images = self.cropImage(full_image)
         end_images = []

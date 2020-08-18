@@ -5,8 +5,8 @@ import ImportLib
 def show_main_widget():
     global root
     _trainType="طبنجة (۹ ملي)"
-    _shooters="6"
-    _bulletNo= "3"
+    _shooters="5"
+    _bulletNo= "6"
     _team="السرية الثامنة"
     canvas=""
     #back ground
