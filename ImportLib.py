@@ -12,6 +12,7 @@ from autocorrect import spell
 from matplotlib import pyplot as plt
 from skimage.filters import threshold_local
 from imutils.object_detection import non_max_suppression
+import configparser
 def rel_to_abs(rel_path, current_file):
     dirname = os.path.dirname(current_file)
     return os.path.join(dirname, rel_path)
@@ -23,7 +24,10 @@ def imwrite_unicode(dirname, file_name, frame):
     cv2.imwrite(file_name, frame)
     os.chdir(script_path)
 
-
+config = configparser.ConfigParser()
+config.read('conf.ini')
+def get_configuration(section, key):
+    return config[section][key]
 
 
 

@@ -5,8 +5,8 @@ import ImportLib
 def show_main_widget():
     global root
     _trainType="طبنجة (۹ ملي)"
-    _shooters="5"
-    _bulletNo= "6"
+    _shooters= ImportLib.get_configuration("VALUES","TargetsCount")
+    _bulletNo=  ImportLib.get_configuration("VALUES","BulletsCount")
     _team="السرية الثامنة"
     canvas=""
     #back ground

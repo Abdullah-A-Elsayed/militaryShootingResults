@@ -41,7 +41,7 @@ class mParams:
         return None
 
 class AK47_params(mParams):
-    REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF2.jpg"
+    # REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF2.jpg"
     HORIZONTAL_SEPARATOR_BEGIN = 1500
     HORIZONTAL_SEPARATOR_END = 4000-1200
     VERTICAL_SEPARATOR = 1200
@@ -100,7 +100,7 @@ class AK47_params(mParams):
         return diff
 
 class Pistol_params(mParams):
-    REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/Ref_bg.jpg"
+    # REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/Ref_bg.jpg"
     HORIZONTAL_SEPARATOR_BEGIN = 1250
     HORIZONTAL_SEPARATOR_END = 2600
     VERTICAL_SEPARATOR = 1200
@@ -139,28 +139,28 @@ class Pistol_params(mParams):
         #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_bin_dilated"+str(index)+".jpg",bw1)
         return bw1
 
-class Morris_params(mParams):
-    REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF2.jpg"
-    HORIZONTAL_SEPARATOR_BEGIN = 1250
-    HORIZONTAL_SEPARATOR_END = 2600
-    VERTICAL_SEPARATOR = 1200
-    MAX_SHOOTERS = 5
-    THRESH_BINARY = 90
-    hough_dp = 1
-    hough_minDist = 15
-    hough_param1 = 118
-    hough_param2 = 8
-    hough_minRadius = 10
-    hough_maxRadius = 24 # 10,15
-    res_plot_radius = 13
-    res_plot_thickness = 14
+# class Morris_params(mParams):
+#     REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF2.jpg"
+#     HORIZONTAL_SEPARATOR_BEGIN = 1250
+#     HORIZONTAL_SEPARATOR_END = 2600
+#     VERTICAL_SEPARATOR = 1200
+#     MAX_SHOOTERS = 5
+#     THRESH_BINARY = 90
+#     hough_dp = 1
+#     hough_minDist = 15
+#     hough_param1 = 118
+#     hough_param2 = 8
+#     hough_minRadius = 10
+#     hough_maxRadius = 24 # 10,15
+#     res_plot_radius = 13
+#     res_plot_thickness = 14
 
-    def cropImage(self, img, num_shooters):
-        pass
-    def process_image(self, img):
-        return None
-    def get_difference(self, prevImg, newImg, toPlotImg, resultPath):
-        return None
+#     def cropImage(self, img, num_shooters):
+#         pass
+#     def process_image(self, img):
+#         return None
+#     def get_difference(self, prevImg, newImg, toPlotImg, resultPath):
+#         return None
 
 class ShootingResults:
 
@@ -254,7 +254,7 @@ class ShootingResults:
         
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7))
         difference = cv2.morphologyEx(difference, cv2.MORPH_OPEN, kernel)
-        cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/diff_demo.jpg", difference)
+        # cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/diff_demo.jpg", difference)
         count_results = self.count_and_plot(difference, cv2.imread(toPlotImagePath), resultPath)
         print(count_results)
 
@@ -267,7 +267,8 @@ class ShootingResults:
     
     def begin_shooting(self):
         #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_before.jpg")
-        full_image_path = "sample/DSC_0026NL.jpg"
+        # full_image_path = "sample/DSC_0026NL.jpg"
+        full_image_path =  get_configuration("PATHS","Sample1")
         full_image = cv2.imread(full_image_path)
         #cv2.imshow('png',full_image)
         cropped_images = self.cropImage(full_image)
@@ -289,7 +290,8 @@ class ShootingResults:
     path: save path of resulting image for each target'''
     def end_shooting(self):
         #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_before.jpg")
-        full_image_path = "sample/DSC_0027NL.jpg"
+        # full_image_path = "sample/DSC_0027NL.jpg"
+        full_image_path = get_configuration("PATHS","Sample2")
         full_image = cv2.imread(full_image_path)
         cropped_images = self.cropImage(full_image)
         end_images = []

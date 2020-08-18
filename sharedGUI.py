@@ -81,6 +81,6 @@ NO_OF_TARGETS = 0
 NO_OF_BULLETS = 0
 SHOOTING_TYPE = ''
 TEAM_NAME = ''
-
-SHOOTERS_INITIAL_DATA = readFromExcell('.', 'الضاربون.xlsx')
+# print("====="+ImportLib.get_configuration("PATHS","InputExcell")+"=====")
+SHOOTERS_INITIAL_DATA = readFromExcell('.', ImportLib.get_configuration("PATHS","InputExcell"))
 RESULT_HEADERS = ['النتيجة','الصورة',]
