@@ -1,8 +1,8 @@
 import sys
 import os
 from pathlib import Path
+from Shoot import ShootingStringTypes
 import subprocess
-
 # sys.path.insert(1, "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\src\\backend")
 import Shoot
 import sharedGUI
@@ -20,11 +20,11 @@ class wrapper:
         print(save_path)
         self.sr = Shoot.ShootingResults(save_path, no_of_targets, shooting_type=wrapper.encode_shooting_type(shooting_type))
     def encode_shooting_type(shooting_type):
-        if(shooting_type=="آلي نهاري"):
+        if(shooting_type==ShootingStringTypes.AK47):
             return Shoot.ShootingTypes.AK47
-        if(shooting_type=="موريس نهاري"):
+        if(shooting_type==ShootingStringTypes.MORRIS):
             return Shoot.ShootingTypes.MORRIS
-        if(shooting_type=="طبنجة (۹ ملي)"):
+        if(shooting_type==ShootingStringTypes.PISTOL):
             return Shoot.ShootingTypes.PISTOL
         return Shoot.ShootingTypes.AK47
     
