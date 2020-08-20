@@ -115,7 +115,7 @@ def create_total_results_file():
     sheet = wb.active 
     sheet.title = 'sheet1'
     sheet.append(headers)
-    wb.save(ImportLib.rel_to_abs('results.xlsx',__file__))
+    wb.save(ImportLib.rel_to_abs(ImportLib.get_configuration("PATHS", "OutputExcell"),__file__))
 
 
 

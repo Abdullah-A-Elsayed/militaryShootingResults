@@ -6,6 +6,7 @@ import os
 import openpyxl
 import numpy as np
 import math
+import ImportLib
 def showStatScreen():
     statWindow = Toplevel()
     titleText = "إجمالي نتائج " + str(sharedGUI.TEAM_NAME)
@@ -40,11 +41,11 @@ def showStatScreen():
     tshots = Label(statWindow, text=res[6], font = helv36, bg="#FFF")
     tshots.place(x=225, y=112)
     # TODO convert to subprocess
-    os.system('"results.xlsx"')
+    os.system('"'+ImportLib.get_configuration("PATHS", "OutputExcell")+'"')
     statWindow.mainloop()
 
 def getCalculations():
-    wb = openpyxl.load_workbook("results.xlsx")
+    wb = openpyxl.load_workbook(ImportLib.get_configuration("PATHS", "OutputExcell"))
     ws = wb.active
     bulletsList = [ t.value for t in ws['E'] ][1:]
     bulletsArray = np.array(bulletsList)

@@ -44,8 +44,7 @@ def lineResults (lineNo, buletsNoResult, shooterImageResult):
         ('جيد', 3, 'السرية التاسعة','عبد الله أحمد هشام','طالب',5)] 
     '''
     ### append results to excell sheet
-    #outputname = Path('.','results.xlsx')
-    outputname = ImportLib.rel_to_abs('results.xlsx', __file__)
+    outputname = ImportLib.rel_to_abs(ImportLib.get_configuration("PATHS", "OutputExcell"), __file__)
     wb = openpyxl.load_workbook(outputname)
     sheet = wb.active 
     sheet.title = 'sheet1'
