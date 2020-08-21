@@ -359,7 +359,24 @@ def __cropContourMaskingOutInfo(img, contour):
     output[mask.astype(np.bool)] = 0
     print("op",output.shape)
     return output
+def __cropContourMaskingOutInfo_white(img, contour):
+    x, y, w, h = cv2.boundingRect(contour)
+    print(x,y)
+    ROI = img[y - 50:y + h + 50, x - 50:x + w + 50]
+    # cv2.imshow("roi",ROI)
+    # cv2.waitKey(0)
+    mask = np.ones(ROI.shape)
+    contour-=[x-50,y-50]
+    #mask = cv2.drawContours(mask, [contour], -1, 255, cv2.FILLED)
+    #mask = cv2.drawContours(mask, [contour], -1, (255,255,255), -1)
 
+    cv2.fillConvexPoly(mask, contour, (255,255,255))
+    # Generate output
+    output = ROI.copy()
+    print(output.shape, mask.shape)
+    output[mask.astype(np.bool)] = 0
+    print("op",output.shape)
+    return mask
 
 def cropContourFromImage(img, contour):
     # mask = np.zeros_like(img)  # Create mask where white is what we want, black otherwise

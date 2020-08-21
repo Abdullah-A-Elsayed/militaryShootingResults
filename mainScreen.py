@@ -2,9 +2,26 @@ from sharedGUI import *
 from shootingScreen import shooting_process
 #sys.path.insert(1, "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\src\\backend")
 import ImportLib
+from Shoot import ShootingStringTypes
 def show_main_widget():
+    def gunChangedEvent(ev):
+        trainBullNoEnt.delete(1.0, END)
+        trainRangeEnt.delete(1.0, END)
+        sel = optionVar.get()
+        if(sel == ShootingStringTypes.AK47):
+            trainBullNoEnt.insert(1.0, ImportLib.get_configuration("VALUES","AK47BulletsCount")) 
+            trainRangeEnt.insert(1.0, ImportLib.get_configuration("VALUES","AK47TargetsCount")) # Targets  
+        
+        if(sel == ShootingStringTypes.MORRIS):
+            trainBullNoEnt.insert(1.0, ImportLib.get_configuration("VALUES","MORRISBulletsCount")) 
+            trainRangeEnt.insert(1.0, ImportLib.get_configuration("VALUES","MORRISTargetsCount")) # Targets  
+        
+        if(sel == ShootingStringTypes.PISTOL):
+            trainBullNoEnt.insert(1.0, ImportLib.get_configuration("VALUES","PISTOLBulletsCount")) 
+            trainRangeEnt.insert(1.0, ImportLib.get_configuration("VALUES","PISTOLTargetsCount")) # Targets  
+        
     global root
-    _trainType="طبنجة (۹ ملي)"
+    _trainType= ShootingStringTypes.PISTOL
     _shooters= ImportLib.get_configuration("VALUES","TargetsCount")
     _bulletNo=  ImportLib.get_configuration("VALUES","BulletsCount")
     _team="السرية الثامنة"
@@ -22,9 +39,11 @@ def show_main_widget():
     optionVar.set(_trainType)  # default value
 
     trainTypeEnt= OptionMenu(root, optionVar,
-    "آلي نهاري" ,
-     "موريس نهاري",
-     "طبنجة (۹ ملي)")
+    ShootingStringTypes.AK47 ,
+     ShootingStringTypes.MORRIS,
+     ShootingStringTypes.PISTOL,
+     command = gunChangedEvent,
+     )
     trainTypeEnt.config(font=helv36, bg='#ccc', width=10, height="2")
     trainTypeEnt['menu'].config(font=helv36, bg='#d2d2d2')
     trainTypeEnt.place(x=900, y=415)
@@ -55,6 +74,7 @@ def show_main_widget():
     startBtn= Button(root, state=NORMAL,  font=helv36, bg="#ccc", image=photo, command= lambda: config_done_action( optionVar.get(), trainRangeEnt.get(1.0,END), trainBullNoEnt.get(1.0,END), teamEnt.get(1.0,END) ) )
     startBtn.place(x=160, y=560)
     #current_element.append(startBtn)
+
     root.mainloop()
 
 def config_done_action(trainName, shootersNo, bulletsNo, teamName):

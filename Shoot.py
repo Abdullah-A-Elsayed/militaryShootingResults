@@ -4,6 +4,11 @@ import pistol_utils
 import cap
 from enum import Enum
 
+class ShootingStringTypes():
+    AK47 =  "آلي نهاري"
+    MORRIS = "موريس نهاري"
+    PISTOL = "طبنجة (۹ ملي)"
+
 class ShootingTypes(Enum):
     AK47 = 1
     PISTOL = 2
