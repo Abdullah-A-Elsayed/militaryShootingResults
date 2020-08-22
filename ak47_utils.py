@@ -1,6 +1,9 @@
 from ImportLib import *
 from HelperFunc import *
 from IDNumberParser import *
+import cvUtils
+from draw_circles import draw_circles
+from cvUtils import *
 import time
 
 def IDMatcher(image, refImagePath):
@@ -14,8 +17,8 @@ def IDMatcher(image, refImagePath):
     flann=cv2.FlannBasedMatcher(flannParam,{})
     
     #refImagePath = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF@.jpg"
-    trainImg  = cv2.imread(refImagePath,0)
-    trainKP,trainDesc=detector.detectAndCompute(trainImg,None)
+    before_image  = cv2.imread(refImagePath,0)
+    trainKP,trainDesc=detector.detectAndCompute(before_image,None)
     
     QueryImgBGR = image
     QueryImg=cv2.cvtColor(QueryImgBGR, cv2.COLOR_BGR2GRAY)
@@ -35,7 +38,7 @@ def IDMatcher(image, refImagePath):
             qp.append(queryKP[m.queryIdx].pt)
         tp,qp=np.float32((tp,qp))
         H,status=cv2.findHomography(tp,qp,cv2.RANSAC,3.0)
-        h,w=trainImg.shape
+        h,w=before_image.shape
         trainBorder=np.float32([[[0,0],[0,h-1],[w-1,h-1],[w-1,0]]])
         queryBorder=cv2.perspectiveTransform(trainBorder,H)
     else:
@@ -124,28 +127,30 @@ def IDCutter(image, refImagePath, method=False):
     #dilate image to widen bullet holes
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(19,19))
     Edged_Gray_dilated = cv2.dilate(Edged_Gray,kernel,iterations = 1)
-    #cv2.imwrite(newImagePath, Edged_Gray_dilated)
+    ##cv2.imwrite(newImagePath, Edged_Gray_dilated)
     
     #convert to binary for processing
     #thresh = self.shooting_params.THRESH_BINARY
     #Edged_bin = cv2.threshold(Edged_Gray_dilated, thresh, 255, cv2.THRESH_BINARY)[1]
     #(_, Edged_Gray2) = cv2.threshold(Edged_Gray2, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-    #cv2.imwrite(newImagePath[:-4]+"_binary.jpg", Edged_bin)
+    ##cv2.imwrite(newImagePath[:-4]+"_binary.jpg", Edged_bin)
     return Edged_Gray_dilated
     #return Edged_Gray2
     #Edged_Gray = cv2.dilate(Edged_Gray , )
     #Edged_Gray2 = cv2.morphologyEx(Edged_Gray, cv2.MORPH_CLOSE, kernel)
     #Edged_Gray2 = cv2.dilate(Edged_Gray , kernel)
     #Edged_Gray = cv2.dilate(Edged_Gray , )
-    #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/ResultOpen.jpg", Edged_Gray2)
+    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/ResultOpen.jpg", Edged_Gray2)
     #Edged_Gray2 = cv2.threshold(Edged_Gray2, thresh, 255, cv2.THRESH_BINARY)[1]
     #(_, Edged_Gray2) = cv2.threshold(Edged_Gray2, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-    #cv2.imwrite(newImagePath[:-4]+"_binary1.jpg", Edged_Gray2)
+    ##cv2.imwrite(newImagePath[:-4]+"_binary1.jpg", Edged_Gray2)
     #cv2.imshow(Edged_Gray)
 def process(img):
+    # cv2.imshow("img",img)
+    # cv2.waitKey(0)
     #img = cv2.imread(imgPath)
     #gray = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
-    #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/blue.jpg",gray)
+    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/blue.jpg",gray)
     ## convert to hsv
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     ## mask of blue (140,70,65) ~ (210, 44, 35)
@@ -158,13 +163,16 @@ def process(img):
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,9))
     mask_shape_eroded = cv2.morphologyEx(mask_shape_inverted, cv2.MORPH_DILATE, kernel,iterations=1)
     mask_shape_eroded = cv2.morphologyEx(mask_shape_eroded, cv2.MORPH_ERODE, kernel,iterations=2)
-
+    # cv2.imshow("mask",mask_shape_eroded)
+    # cv2.waitKey(0)
     #crop white paper from whole image
     contours, hierarchy = cv2.findContours(mask_shape_eroded, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     print("contours lenghth ",len(contours))
     largest_area = sorted(contours, key=cv2.contourArea)[-2]
     x, y, w, h = cv2.boundingRect(largest_area)
     detectionImage_paper = img[y:y+h, x:x+w]
+    # cv2.imshow("paper",detectionImage_paper)
+    # cv2.waitKey(0)
 
     #crop black shape from white paper
     detectionImage_paper_gray = cv2.cvtColor(detectionImage_paper, cv2.COLOR_BGR2GRAY)
@@ -172,7 +180,8 @@ def process(img):
     detectionImage_paper_gray = cv2.morphologyEx(detectionImage_paper_gray, cv2.MORPH_DILATE, kernel,iterations=4)
     detectionImage_paper_bin = cv2.threshold(detectionImage_paper_gray, 85, 255, cv2.THRESH_BINARY)[1] #to be parameterized
     detectionImage_paper_bin = cv2.Canny(detectionImage_paper_bin,30,100)
-    
+    #cv2.imshow("paper_edged",detectionImage_paper_bin)
+    #cv2.waitKey(0)
 
     contours, hierarchy = cv2.findContours(detectionImage_paper_bin, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     print("contours lenghth ",len(contours))
@@ -182,8 +191,8 @@ def process(img):
     #for l in largest_areas:
     #    print(cv2.contourArea(l))
     x, y, w, h = cv2.boundingRect(largest_area)
-    detectionImage_shape = detectionImage_paper[y-10:y+h+10, x-10:x+w+10]
-    largest_area-=[x-10,y-10]
+    detectionImage_shape = detectionImage_paper[y-50:y+h+50, x-50:x+w+50]
+    largest_area-=[x-50,y-50]
     epsilon = 0.001*cv2.arcLength(largest_area,True)
     approx = cv2.approxPolyDP(largest_area,epsilon,True)
 
@@ -194,16 +203,170 @@ def process(img):
     #cv2.waitKey(0)
     #mask_shape = cv2.GaussianBlur(mask_shape,(11,11),0)
     #print(mask_shape)
-    #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/jagged.jpg",mask_shape)
+    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/jagged.jpg",mask_shape)
     #output = cv2.bitwise_and(detectionImage_shape, mask_shape)
     output = detectionImage_shape.copy()
     print(output.shape, mask_shape.shape)
     output[mask_shape.astype(np.bool)] = 255
-    #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop.jpg",detectionImage_paper)
-    #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop_shape1.jpg",output)
-    #cv2.imwrite(savePath,detectionImage_shape)
+    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop.jpg",detectionImage_paper)
+    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop_shape1.jpg",output)
+    ##cv2.imwrite(savePath,detectionImage_shape)
     return detectionImage_shape
     
+def process_and_get_diff_ak(before_image, after_image, idx=None):
+    """
+    Takes two BGR images for an AK47 shooting targets, and calculates the difference in bullets
+
+    Arguments:
+    -----------
+        before_image: np.ndarray
+            Begin image; image before shooting
+        after_image: np.ndarray
+            End image; image after shooting
+    Returns:
+    -----------
+        output: np.ndarray
+            The end image with white circles drawn on the target shape, and new bullets marked with red circles
+    """
+    # before_image=cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_11.jpg")
+    # queryImg=cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_21.jpg")
+    # before_image=cv2.imread(before_path)
+    # after_image=cv2.imread(after_path)
+    after_image_aligned, h = alignImages(after_image,before_image)
+    after_image_aligned = cv2.cvtColor(after_image_aligned, cv2.COLOR_BGR2GRAY)
+    before_image = cv2.cvtColor(before_image, cv2.COLOR_BGR2GRAY)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,9))
+    
+    after_image_processed = cv2.morphologyEx(after_image_aligned, cv2.MORPH_ERODE, kernel,iterations=3)
+    after_image_processed = cv2.morphologyEx(after_image_processed, cv2.MORPH_DILATE, kernel,iterations=4)
+    after_image_processed = cv2.threshold(after_image_processed, 85, 255, cv2.THRESH_BINARY)[1] #to be parameterized
+    after_image_processed = cv2.Canny(after_image_processed,30,100)
+    #after_image_processed = cv2.Canny(after_image_aligned, 30, 90)
+    
+
+    #before_image_processed = cv2.Canny(before_image, 30, 90)   #10 for pistol
+    before_image_processed = cv2.morphologyEx(before_image, cv2.MORPH_ERODE, kernel,iterations=3)
+    before_image_processed = cv2.morphologyEx(before_image_processed, cv2.MORPH_DILATE, kernel,iterations=4)
+    before_image_processed = cv2.threshold(before_image_processed, 85, 255, cv2.THRESH_BINARY)[1] #to be parameterized
+    before_image_processed = cv2.Canny(before_image_processed,30,100)
+    #cv2.imshow("after_image_processed",after_image_processed)
+    #cv2.imshow("before_image_processed",before_image_processed)
+    #cv2.waitKey()
+    cnts1, _ = cv2.findContours(after_image_processed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    cnts2, _ = cv2.findContours(before_image_processed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #cnts2, _ = cv2.findContours(before_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    cnts1.sort(key=cv2.contourArea)
+    cnts2.sort(key=cv2.contourArea)
+    #print(len(cnts1))
+    large_cnt1 = cnts1[-2]
+    large_cnt2 = cnts2[-2]
+
+    '''
+    # test contours alignment
+    im_copy = np.zeros_like(after_image_aligned)
+    im_copy = cv2.cvtColor(im_copy, cv2.COLOR_GRAY2BGR)
+    cv2.drawContours(im_copy, [large_cnt1], 0, (255, 0, 0), 3)
+    cv2.drawContours(im_copy, [large_cnt2], 0, (0, 255, 0), 3)
+    #cv2.imshow('new', im_copy)
+    #cv2.waitKey(0)
+    '''
+    #large_cnt2 = scale_contour(cnts2[-2], 0.9)
+
+    #translate shifted image to center of contour
+    center1 = get_center(large_cnt1)
+    center2 = get_center(large_cnt2)
+    if cv2.contourArea(large_cnt1) < cv2.contourArea(large_cnt2):
+        min_cnt = large_cnt1
+        cx,cy = center1[0]-center2[0], center1[1]-center2[1]
+        before_image = translate_image(before_image, cx, cy)
+    else:
+        min_cnt = large_cnt2
+        cx,cy = center2[0]-center1[0], center2[1]-center1[1]
+        after_image_aligned = translate_image(after_image_aligned, cx, cy)
+    #print(cx, cy)
+    #cv2.imshow('new', after_image_aligned)
+    #cv2.imshow('new', before_image)
+    #cv2.waitKey(0)
+    r1 = cvUtils.__cropContourMaskingOutInfo(after_image_aligned, min_cnt, 10, 255)
+    r2 = cvUtils.__cropContourMaskingOutInfo(before_image, min_cnt, 10, 255)
+    # cv2.imshow('orig', r2)
+    # cv2.waitKey(0)
+    # cv2.imshow('new', r1)
+    # cv2.waitKey(0)
+    #exit()
+
+    after_image_aligned = r1
+    before_image = r2
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/n1_"+ str(idx) +".jpg",after_image_aligned)
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/n2_"+ str(idx) +".jpg",before_image)
+    #print(after_image_aligned.shape, h.shape)
+    #img1 = cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_21.jpg")
+    #img2 = IDMatcher(img1, "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_11.jpg")
+    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_21_edit.jpg",img2)
+    ''' CALCULATE DIFFERENCE'''
+    diff = cv2.subtract(after_image_aligned,before_image)
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/diff_align_"+ str(idx) +".jpg",diff)
+    diff = cv2.threshold(diff,25,255,cv2.THRESH_BINARY)[1]
+    diff = cv2.GaussianBlur(diff, (5,5), 2)
+    diff = cv2.threshold(diff,70,255,cv2.THRESH_BINARY)[1]
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/diff_thresh_"+ str(idx) +".jpg",diff)
+    k1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
+    k2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15,15))
+    diff = cv2.morphologyEx(diff, cv2.MORPH_ERODE, k1)
+    # cv2.imshow('diff_eroded', diff)
+    # cv2.waitKey(0)
+    diff = cv2.morphologyEx(diff, cv2.MORPH_DILATE, k2, iterations=2)
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/diff_dilated"+ str(idx) +".jpg",diff)
+    # cv2.imshow('diff_dilated', diff)
+    # cv2.waitKey(0)
+    '''
+    circles = cv2.HoughCircles(diff,cv2.HOUGH_GRADIENT,1,minDist=15, param1=118,param2=8,minRadius=3,maxRadius=25) # 10,15
+    if circles is not None:
+        print(circles)
+        print("len,",len(circles[0]))
+        output = diff.copy()
+        output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
+        # convert the (x, y) coordinates and radius of the circles to integers
+        circles = np.round(circles[0, :]).astype("int")
+        # loop over the (x, y) coordinates and radius of the circles
+        for (x, y, r) in circles:
+            # draw the circle in the output image, then draw a rectangle
+            # corresponding to the center of the circle
+            cv2.circle(output, (x, y), r, (0, 0, 255), 2)
+            #cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+        # show the output image
+        #cv2.imshow("output", np.hstack([image, output]))
+        #cv2.waitKey(0)
+            #print("Dasdaoajoijnsss")
+        #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_res.jpg",output)
+
+        '''
+    output = after_image_aligned.copy()
+    print("output shape",output.shape)
+    #output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
+    output = draw_circles(output)   #takes gray image, returns BGR image
+    '''
+    op = cv2.connectedComponentsWithStats(diff, connectivity=8, ltype= cv2.CV_32S)
+    centroids = op[3]
+    bodies = op[2]
+    #print(len(centroids))
+    centroids = np.round(centroids).astype("int")
+    score = 0
+    #print("after", centroids)
+    for i,c in enumerate(centroids):
+        #print(c)
+        area = bodies[i][4]
+        width = bodies[i][2]
+        print(area)
+        #280-900 for (9,9) dilate kernel
+        if(600 <= area <= 900):
+            score += 1
+            cv2.circle(output, (c[0],c[1]), 10, (0,0,255), 3) #radius of width//2
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
+    return output, score
+    '''
+    return output
+
 def cropImage(img, numberOfShapes):
     """
 
@@ -220,7 +383,7 @@ def cropImage(img, numberOfShapes):
     imgList = []
     #n = 2
     while end <= width:
-        image_crop = img[:, start:end, :]       #may need vertical cutting
+        image_crop = img[1300:2800, start:end, :]       #may need vertical cutting
         # cvUtils.plotCVImage(n, targetImage)
         imgList.append(image_crop)
         start = end
@@ -229,4 +392,28 @@ def cropImage(img, numberOfShapes):
         # n += 1
     print(len(imgList))
     return imgList
-    
+img2_path = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\1"
+img1 = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\2.jpg"
+
+save_path = "C:/Users/Abdallah Reda/Desktop/test_ak/"
+#img2 = cv2.imread(img2)
+img1 = cv2.imread(img1)
+img1 = process(img1)
+#cropped1 = cropImage(img1, 5)
+#cropped2 = cropImage(img2, 5)
+for i in range(1,5):
+    #bef = process(ss)
+    img2 = cv2.imread(img2_path+"_"+str(i)+".jpg")
+    img2 = process(img2)
+    output, score = process_and_get_diff_ak(img2, img1, 65+i)
+    print("score:",  score)
+    #op = draw_circles(op)
+    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_with_circles_"+str(65+i) +".jpg", output)
+for i in range(len(cropped1)):
+    processed1 = process(cropped1[i])
+    processed2 = process(cropped2[i])
+    #cv2.imwrite(save_path+"proc1_"+str(i)+".jpg", processed1)
+    #cv2.imwrite(save_path+"proc2_"+str(i)+".jpg", processed2)
+
+#processed1 = process(cropped2[4])
+##cv2.imwrite(save_path+"proc1_4.jpg", processed1)

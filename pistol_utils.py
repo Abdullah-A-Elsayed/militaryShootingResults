@@ -24,7 +24,7 @@ def __getFirstPistolTargetShapeContour(contours, shape_area):
 
     return None
 
-def cropImage(img, numberOfShapes,removeBG = True):
+def cropImage(img, numberOfShapes, removeBG = True):
     dark_orange = (100, 0, 140)
     light_orange = (225, 255, 255)
     #print(img.size, img.dtype)
@@ -41,7 +41,7 @@ def cropImage(img, numberOfShapes,removeBG = True):
     # thresholded_img = cv2.morphologyEx(thresholded_img, cv2.MORPH_CLOSE, kernel, iterations=3)
 
     thresholded_img = cv2.GaussianBlur(thresholded_img, (5, 5), 0)
-
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/pistol_thresh"+ str(idx) +".JPG", thresholded_img)
     contours, hierar = cv2.findContours(thresholded_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     img_copy = img.copy()
 
@@ -79,7 +79,7 @@ def cropImage(img, numberOfShapes,removeBG = True):
     #                      ["original Image", "threshold_img", "Result"])
     return croppedOutImages, target_contours
 '''
-img = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/DSC_0010 - Copy.JPG"
+img = "C:/Users/Abdallah Reda/Desktop/test_pistol/DSC_0010 - Copy.JPG"
 img = cv2.imread(img)
 cropped, cont = __getThePistolTargetShapes(img,10,True)
 #mask = cv2.drawContours(cropped[0], cont[0], -1, 0, cv2.FILLED)
@@ -127,6 +127,10 @@ cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/vi
 def get_diff_pistol(img1, img2, index, thresh=10):
     #img1 = cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/test4_before.jpg", 0)
     #img2 = cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/test4.jpg", 0)
+    print("diff",img1.dtype)
+    img1 = np.array(img1, dtype=np.uint8)
+    img2 = np.array(img2, dtype=np.uint8)
+    print("diff",img1.dtype)
     if(len(img1.shape)>2):
         img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
     if(len(img2.shape)>2):
@@ -135,14 +139,17 @@ def get_diff_pistol(img1, img2, index, thresh=10):
     #cv2.waitKey(0)
     #cv2.imshow('img2',img2)
     #cv2.waitKey(0)
+    max_shape = max(img1.shape, img2.shape)[::-1]
+    img1 = cv2.resize(img1, max_shape)
+    img2 = cv2.resize(img2, max_shape)
     diff = cv2.absdiff(img2,img1)
-    cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_gray"+str(index)+".jpg",diff)
+    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/diff_gray"+str(index)+".jpg",diff)
     bw1 = cv2.threshold(diff, thresh, 255, cv2.THRESH_BINARY)[1]
-    cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_bin"+str(index)+".jpg",bw1)
+    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/diff_bin"+str(index)+".jpg",bw1)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(19,19))
     bw1 = cv2.dilate(bw1,kernel,iterations = 1)
-    cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_bin_dilated"+str(index)+".jpg",bw1)
+    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/diff_bin_dilated"+str(index)+".jpg",bw1)
 
     circles = cv2.HoughCircles(bw1,cv2.HOUGH_GRADIENT,1,minDist=15, param1=118,param2=8,minRadius=9,maxRadius=17 , ) # 10,15
     if circles is not None:
@@ -162,19 +169,20 @@ def get_diff_pistol(img1, img2, index, thresh=10):
             #print("Dasdaoajoijnsss")
 
     print("circles = ", len(circles))
-    cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/result"+str(index)+".jpg", output) #np.hstack([image, output]))
-'''
-img1 = cv2.imread("C:/Users/Abdallah Reda/Desktop/DSC_0026NL.JPG")
-img2 = cv2.imread("C:/Users/Abdallah Reda/Desktop/DSC_0027NL.JPG")
+    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/result"+str(index)+".jpg", output) #np.hstack([image, output]))
+
+img1 = cv2.imread("C:/Users/Abdallah Reda/Desktop/t1.JPG")
+img2 = cv2.imread("C:/Users/Abdallah Reda/Desktop/t2.JPG")
 #print(img.shape)
-imgs1 = cropImage(img1, 5)
-imgs2 = cropImage(img2, 5)
+imgs2 = cropImage(img2, 10, 2)
+imgs1 = cropImage(img1, 10, 1)
 i=1
 for pair in zip(imgs1[0], imgs2[0]):
     print(pair[0].shape, pair[1].shape)
-    #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_1"+str(i)+".jpg", pair[0]) #np.hstack([image, output]))
-    #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_2"+str(i)+".jpg", pair[1]) #np.hstack([image, output]))
-    get_diff_pistol(*pair, i)
+    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/cropped_1"+str(i)+".jpg", pair[0]) #np.hstack([image, output]))
+    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/cropped_2"+str(i)+".jpg", pair[1]) #np.hstack([image, output]))
+    #print(imgs2[1][i-1] - imgs1[1][i-1])
+    #get_diff_pistol(*pair, i)
     i+=1
+    #break
 #get_diff_pistol(10)
-'''

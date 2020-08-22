@@ -1,11 +1,12 @@
 import sys
 import os
 import subprocess
-import datetime 
+import datetime
+from ImportLib import get_configuration
 
 def func_TakeNikonPicture(input_filename):
     input_filename.replace(" ","\ ")
-    camera_command = 'C:\Program Files (x86)\digiCamControl\CameraControlCmd.exe'
+    camera_command = get_configuration("PATHS","digiCamControlPath")
     camera_command_details = '/filename ' + '"'+ input_filename + '"'  + ' /capture /iso 500 /shutter 1/30 /aperture 1.8'
     print('camera details = ',camera_command_details)
     full_command=camera_command + ' ' + camera_command_details

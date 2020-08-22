@@ -35,6 +35,8 @@ class mParams:
     hough_param2 = None
     hough_minRadius = None
     hough_maxRadius = None
+    connected_components_min_area = None
+    connected_components_max_area = None
     res_plot_radius = None
     res_plot_thickness = None
 
@@ -58,8 +60,10 @@ class AK47_params(mParams):
     hough_param2 = 8
     hough_minRadius = 10
     hough_maxRadius = 24 # 10,15
-    res_plot_radius = 13
-    res_plot_thickness = 14
+    connected_components_min_area = 600
+    connected_components_max_area = 900
+    res_plot_radius = 10        #13
+    res_plot_thickness = 3     #14
 
     def cropImage(self, img, num_shooters):
         height, width, colors = img.shape
@@ -78,19 +82,21 @@ class AK47_params(mParams):
             end += width_cutoff
             # print("current width = ",start)
             # n += 1
-        print(len(imgList))
+        print("number of cropped images:", len(imgList))
         return imgList
     def process_image(self, img):
         #return ak47_utils.IDCutter(img, AK47_params.REF_IMAGE)
         return ak47_utils.process(img)
+        #return img
     def get_difference(self, prevImg, newImg):
+        '''
         #prevImg = cv2.threshold(prevImg, AK47_params.THRESH_BINARY, 255, cv2.THRESH_BINARY)[1]
         #newImg = cv2.threshold(newImg, AK47_params.THRESH_BINARY, 255, cv2.THRESH_BINARY)[1]
         #difference = cv2.subtract(newImg,prevImg)
         #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7))
         #difference = cv2.morphologyEx(difference, cv2.MORPH_OPEN, kernel)
         #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/diff_demo.jpg", difference)
-        #count_results = self.count_and_plot(difference, toPlotImg, resultPath)
+        #count_results = self.count_and_plot_hough(difference, toPlotImg, resultPath)
         prevImg = cv2.cvtColor(prevImg, cv2.COLOR_BGR2GRAY)
         newImg = cv2.cvtColor(newImg, cv2.COLOR_BGR2GRAY)
         maxshape = max(prevImg.shape, newImg.shape)
@@ -103,6 +109,8 @@ class AK47_params(mParams):
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (14,14))
         diff = cv2.morphologyEx(diff, cv2.MORPH_DILATE, kernel,iterations=1)
         return diff
+        '''
+        return ak47_utils.process_and_get_diff_ak(prevImg, newImg)
 
 class Pistol_params(mParams):
     # REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/Ref_bg.jpg"
@@ -117,6 +125,8 @@ class Pistol_params(mParams):
     hough_param2 = 8
     hough_minRadius = 10
     hough_maxRadius = 24 # 10,15
+    connected_components_min_area = 600
+    connected_components_max_area = 900
     res_plot_radius = 13
     res_plot_thickness = 14
 
@@ -144,28 +154,30 @@ class Pistol_params(mParams):
         #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_bin_dilated"+str(index)+".jpg",bw1)
         return bw1
 
-# class Morris_params(mParams):
-#     REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF2.jpg"
-#     HORIZONTAL_SEPARATOR_BEGIN = 1250
-#     HORIZONTAL_SEPARATOR_END = 2600
-#     VERTICAL_SEPARATOR = 1200
-#     MAX_SHOOTERS = 5
-#     THRESH_BINARY = 90
-#     hough_dp = 1
-#     hough_minDist = 15
-#     hough_param1 = 118
-#     hough_param2 = 8
-#     hough_minRadius = 10
-#     hough_maxRadius = 24 # 10,15
-#     res_plot_radius = 13
-#     res_plot_thickness = 14
+class Morris_params(mParams):
+    REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF2.jpg"
+    HORIZONTAL_SEPARATOR_BEGIN = 1250
+    HORIZONTAL_SEPARATOR_END = 2600
+    VERTICAL_SEPARATOR = 1200
+    MAX_SHOOTERS = 5
+    THRESH_BINARY = 90
+    hough_dp = 1
+    hough_minDist = 15
+    hough_param1 = 118
+    hough_param2 = 8
+    hough_minRadius = 10
+    hough_maxRadius = 24 # 10,15
+    connected_components_min_area = 600
+    connected_components_max_area = 900
+    res_plot_radius = 13
+    res_plot_thickness = 14
 
-#     def cropImage(self, img, num_shooters):
-#         pass
-#     def process_image(self, img):
-#         return None
-#     def get_difference(self, prevImg, newImg, toPlotImg, resultPath):
-#         return None
+    def cropImage(self, img, num_shooters):
+        pass
+    def process_image(self, img):
+        return None
+    def get_difference(self, prevImg, newImg, toPlotImg, resultPath):
+        return None
 
 class ShootingResults:
 
@@ -215,7 +227,7 @@ class ShootingResults:
         #    cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/cropped_"+ str(i+1) + ".jpg", cropped_img)
         #    cropped_images.append(cropped_img)
         #    v_begin += self.shooting_params.VERTICAL_SEPARATOR
-        return self.shooting_params.cropImage(image, self.num_shooters)
+        return self.shooting_params.cropImage(image, self.shooting_params.MAX_SHOOTERS) #self.num_shooters
 
     def prepare_image(self, img, newImageName):
         #image = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/Shoot2.jpg"
@@ -227,7 +239,7 @@ class ShootingResults:
         return processed_image
     def prepare_collected_images(self, c):
         pass
-    def count_and_plot(self, detectionImage, plotImage, saveName):
+    def count_and_plot_hough(self, detectionImage, plotImage, saveName):
         circles = cv2.HoughCircles(detectionImage,cv2.HOUGH_GRADIENT,self.shooting_params.hough_dp,minDist=self.shooting_params.hough_minDist, param1=self.shooting_params.hough_param1,param2=self.shooting_params.hough_param2,minRadius=self.shooting_params.hough_minRadius,maxRadius=self.shooting_params.hough_maxRadius) # 10,15
         #cimg = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         if circles is not None:
@@ -251,6 +263,26 @@ class ShootingResults:
             return len(circles)
         return 0
         
+    def count_and_plot_connectedComponents(self, detectionImage, plotImage, saveName):
+        op = cv2.connectedComponentsWithStats(detectionImage, connectivity=8, ltype= cv2.CV_32S)
+        centroids = op[3]
+        bodies = op[2]
+        #print(len(centroids))
+        centroids = np.round(centroids).astype("int")
+        score = 0
+        #print("after", centroids)
+        for i,c in enumerate(centroids):
+            #print(c)
+            area = bodies[i][4]
+            width = bodies[i][2]
+            print(area)
+            #280-900 for (9,9) dilate kernel
+            if(self.shooting_params.connected_components_min_area <= area <= self.shooting_params.connected_components_min_area):
+                score += 1
+                cv2.circle(plotImage, (c[0],c[1]), self.shooting_params.res_plot_radius, (0,0,255), self.shooting_params.res_plot_thickness) #radius of width//2
+        #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
+        imwrite_unicode(self.save_path, saveName, plotImage)
+        return score
 
     def calculate_difference(self, previousImagePath, newImagePath, toPlotImagePath, resultPath):
         prev = cv2.imread(previousImagePath,0)
@@ -260,14 +292,16 @@ class ShootingResults:
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7))
         difference = cv2.morphologyEx(difference, cv2.MORPH_OPEN, kernel)
         # cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/diff_demo.jpg", difference)
-        count_results = self.count_and_plot(difference, cv2.imread(toPlotImagePath), resultPath)
+        count_results = self.count_and_plot_hough(difference, cv2.imread(toPlotImagePath), resultPath)
         print(count_results)
 
     def calculate_difference_images(self, prevImg, newImg, toPlotImg, resultPath):
         #prev = cv2.imread(previousImagePath,0)
         #new = cv2.imread(newImagePath,0)
         diff_img = self.shooting_params.get_difference(prevImg, newImg)
-        return self.count_and_plot(diff_img, toPlotImg, resultPath)
+        return self.count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath)
+        #imwrite_unicode(self.save_path, resultPath, diff_img)
+        #return score
         
     
     def begin_shooting(self):

@@ -14,10 +14,8 @@ debug = True
 ##TODO: change this to dynamic setting
 max_number_of_bullets = 3
 
-MAX_FEATURES = 550
-GOOD_MATCH_PERCENT = 0.2
-
-
+MAX_FEATURES = 10000
+GOOD_MATCH_PERCENT = 0.99
 def alignImages(im1, im2):
     # Convert images to grayscale
     im1Gray = cv2.cvtColor(im1, cv2.COLOR_BGR2GRAY)
@@ -60,6 +58,29 @@ def alignImages(im1, im2):
     im1Reg = cv2.warpPerspective(im1, h, (width, height))
 
     return im1Reg, h
+def get_center(cnt):
+    M = cv2.moments(cnt)
+    cx = int(M['m10']/M['m00'])
+    cy = int(M['m01']/M['m00'])
+    return (cx,cy)
+def scale_contour(cnt, scale):
+    cx, cy = get_center(cnt)
+
+    cnt_norm = cnt - [cx, cy]
+    cnt_scaled = cnt_norm * scale
+    cnt_scaled = cnt_scaled + [cx, cy]
+    cnt_scaled = cnt_scaled.astype(np.int32)
+
+    return cnt_scaled
+def translate_image(image, cx, cy):
+    height,width = image.shape
+    T = np.float32([[1, 0, cx], [0, 1, cy]])
+    
+    # We use warpAffine to transform 
+    # the image using the matrix, T 
+    img_translation = cv2.warpAffine(image, T, (width, height)) 
+    return img_translation
+
 
 
 def Find_HSV_Value(img):
@@ -342,31 +363,32 @@ def drawBndRects(contours, img):
 
     return None
 
-
-def __cropContourMaskingOutInfo(img, contour):
+def __cropContourMaskingOutInfo(img, cnt, margin=0, background_color_gray=0):
+    contour = cnt.copy()
     x, y, w, h = cv2.boundingRect(contour)
-    print(x,y)
-    ROI = img[y - 50:y + h + 50, x - 50:x + w + 50]
+    #print(x,y,w,h)
+    ROI = img[y - margin : y + h + margin, x - margin : x + w + margin]
     # cv2.imshow("roi",ROI)
     # cv2.waitKey(0)
     mask = np.ones(ROI.shape)
-    contour-=[x-50,y-50]
-    #mask = cv2.drawContours(mask, contour, -1, 0, cv2.FILLED)
-    cv2.fillConvexPoly(mask, contour, (0,0,0))
+    contour-=[x-margin,y-margin]
+    mask = cv2.drawContours(mask, [contour], -1, 0, cv2.FILLED)
+    #cv2.fillConvexPoly(mask, contour, (0,0,0))
     # Generate output
     output = ROI.copy()
-    print(output.shape, mask.shape)
-    output[mask.astype(np.bool)] = 0
-    print("op",output.shape)
+    #print(output.shape, mask.shape)
+    output[mask.astype(np.bool)] = background_color_gray
+    #print("op",output.shape)
     return output
-def __cropContourMaskingOutInfo_white(img, contour):
+
+def __cropContourMaskingOutInfo_white(img, contour, margin=0, background_color_gray=0):
     x, y, w, h = cv2.boundingRect(contour)
     print(x,y)
-    ROI = img[y - 50:y + h + 50, x - 50:x + w + 50]
+    ROI = img[y - margin : y + h + margin, x - margin : x + w + margin]
     # cv2.imshow("roi",ROI)
     # cv2.waitKey(0)
     mask = np.ones(ROI.shape)
-    contour-=[x-50,y-50]
+    contour-=[x-margin,y-margin]
     #mask = cv2.drawContours(mask, [contour], -1, 255, cv2.FILLED)
     #mask = cv2.drawContours(mask, [contour], -1, (255,255,255), -1)
 
@@ -374,7 +396,7 @@ def __cropContourMaskingOutInfo_white(img, contour):
     # Generate output
     output = ROI.copy()
     print(output.shape, mask.shape)
-    output[mask.astype(np.bool)] = 0
+    output[mask.astype(np.bool)] = background_color_gray
     print("op",output.shape)
     return mask
 

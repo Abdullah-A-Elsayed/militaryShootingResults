@@ -1,2 +1,7 @@
 
 *.pyc
+.vscode/settings.json
+*.pyc
+__pycache__/HelperFunc.cpython-38.pyc
+__pycache__/IDNumberParser.cpython-38.pyc
+__pycache__/ImportLib.cpython-38.pyc
