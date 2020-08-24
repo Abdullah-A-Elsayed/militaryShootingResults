@@ -210,7 +210,7 @@ def process(img):
     print(output.shape, mask_shape.shape)
     output[mask_shape.astype(np.bool)] = 255
     ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop.jpg",detectionImage_paper)
-    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop_shape1.jpg",output)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/final_crop_shape1.jpg",output)
     ##cv2.imwrite(savePath,detectionImage_shape)
     return detectionImage_shape
 
@@ -219,16 +219,58 @@ def process_and_get_diff_ak_kk(bef_img, aft_img, idx=None):
     before_image = cv2.cvtColor(bef_img, cv2.COLOR_BGR2GRAY)
     after_image = cv2.cvtColor(aft_img, cv2.COLOR_BGR2GRAY)
     #print("both_shape:",after_image.shape,before_image.shape)
+    #before_image2 = cv2.adaptiveThreshold(before_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 3, 12)
+    #before_image3 = cv2.adaptiveThreshold(before_image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 3, 12)
     before_image = cv2.threshold(before_image, 40, 255, cv2.THRESH_BINARY)[1] #to be parameterized
     cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/single_processed"+ str(idx) +".jpg",before_image)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/single_processed_gauss"+ str(idx) +".jpg",before_image2)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/single_processed_mean"+ str(idx) +".jpg",before_image3)
     #after_image = cv2.cvtColor(after_image, cv2.COLOR_BGR2GRAY)
     after_image = cv2.threshold(after_image, 40, 255, cv2.THRESH_BINARY)[1] #to be parameterized
+
+    before_image_colored = cv2.cvtColor(before_image, cv2.COLOR_GRAY2BGR)
+    after_image_colored = cv2.cvtColor(after_image, cv2.COLOR_GRAY2BGR)
+    before_image,_ = alignImages(before_image_colored, after_image_colored)
+    before_image = cv2.cvtColor(before_image, cv2.COLOR_BGR2GRAY)
+    res = cv2.subtract(after_image,before_image)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/res_diff"+ str(idx) +".jpg",res)
     cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/single_processed_after"+ str(idx) +".jpg",after_image)
-    k1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
+    k1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
+    k2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
     before_image = cv2.morphologyEx(before_image, cv2.MORPH_DILATE, k1)
+    res = cv2.morphologyEx(res, cv2.MORPH_ERODE, k2)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/res_diff_eroded"+ str(idx) +".jpg",res)
     after_image = cv2.morphologyEx(after_image, cv2.MORPH_DILATE, k1)
-    output = after_image.copy()
+
     cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/single_processed_after_dilated"+ str(idx) +".jpg",after_image)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/single_processed_dilated"+ str(idx) +".jpg",before_image)
+    edged1 = cv2.Canny(bef_img, 30, 100)
+    edged2 = cv2.Canny(aft_img, 30, 100)
+    cv2.imshow("e1",edged1)
+    cv2.imshow("e2",edged2)
+    cv2.waitKey(0)
+    # contours, hierarchy = cv2.findContours(after_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    # print("contours lenghth ",len(contours))
+    # largest_areas = sorted(contours, key=cv2.contourArea)
+    # largest_area = largest_areas[-2]
+    # #cv2.imshow("bef_cont", after_image)
+    # after_image = cv2.drawContours(after_image, [largest_area], -1, 0, 13)
+    # #cv2.imshow("aft_cont", after_image)
+    #cv2.waitKey(0)
+
+    # contours, hierarchy = cv2.findContours(before_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    # print("contours lenghth ",len(contours))
+    # largest_areas = sorted(contours, key=cv2.contourArea)
+    # largest_area = largest_areas[-2]
+    # #cv2.imshow("bef_cont", before_image)
+    # before_image = cv2.drawContours(before_image, [largest_area], -1, 0, 13)
+    #cv2.imshow("aft_cont", before_image)
+    #cv2.waitKey(0)
+
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/after_contoured"+ str(idx) +".jpg",after_image)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/contoured"+ str(idx) +".jpg",before_image)
+
+    output = after_image.copy()
     print("output shape",output.shape)
     output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
     #output = draw_circles(output)   #takes gray image, returns BGR image
@@ -247,9 +289,9 @@ def process_and_get_diff_ak_kk(bef_img, aft_img, idx=None):
         width = bodies[i][2]
         print("area",i,"=",area)
         #280-900 for (9,9) dilate kernel
-        if(60 <= area <= 150):
+        if(20 <= area <= 120):
             score += 1
-            cv2.circle(output, (c[0],c[1]), 10, (0,0,255), 3) #radius of width//2
+            cv2.circle(output, (c[0],c[1]), width//2, (0,0,255), 3) #radius of width//2
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
     cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/res_after"+ str(idx) +".jpg",output)
 
@@ -272,9 +314,9 @@ def process_and_get_diff_ak_kk(bef_img, aft_img, idx=None):
         width = bodies[i][2]
         print("area",i,"=",area)
         #280-900 for (9,9) dilate kernel
-        if(60 <= area <= 150):
+        if(20 <= area <= 120):
             score_bef += 1
-            cv2.circle(output, (c[0],c[1]), 10, (0,0,255), 3) #radius of width//2
+            cv2.circle(output, (c[0],c[1]), width//2, (0,0,255), 3) #radius of width//2
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
     cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/res_before"+ str(idx) +".jpg",output)
     print(score - score_bef)
@@ -502,3 +544,16 @@ for i in range(len(cropped1)):
 #processed1 = process(cropped2[4])
 ##cv2.imwrite(save_path+"proc1_4.jpg", processed1)
 '''
+
+img1 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\testd\\2_before.jpg"
+img2 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\testd\\2_after.jpg"
+# img1 = "C:/Users/Abdelrahman Ezzat/Desktop/New folder/final_crop_shape_before.jpg"
+# img2 = "C:/Users/Abdelrahman Ezzat/Desktop/New folder/final_crop_shape_after.jpg"
+img1 = cv2.imread(img1)
+img2 = cv2.imread(img2)
+# diff_img,_,toPlotImg = process_and_get_diff_ak(img1, img2)
+# cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_new2.jpg",diff_img)
+#self.shooting_params.get_plot_image(toPlotImg)
+
+
+process_and_get_diff_ak_kk(img1,img2)
