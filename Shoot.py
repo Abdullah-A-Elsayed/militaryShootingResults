@@ -113,7 +113,7 @@ class AK47_params(mParams):
         diff = cv2.morphologyEx(diff, cv2.MORPH_DILATE, kernel,iterations=1)
         return diff
         '''
-        return ak47_utils.process_and_get_diff_ak(prevImg, newImg)
+        return ak47_utils.process_and_get_diff_ak_kk(prevImg, newImg)
 
 
     def get_plot_image(self, newImg):
@@ -316,12 +316,12 @@ class ShootingResults:
     def calculate_difference_images(self, prevImg, newImg, toPlotImg, resultPath):
         #prev = cv2.imread(previousImagePath,0)
         #new = cv2.imread(newImagePath,0)
-        images = self.shooting_params.get_difference(prevImg, newImg)
-        diff_img,_,toPlotImg = images
-        toPlotImg = self.shooting_params.get_plot_image(toPlotImg)
-        return self.count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath)
-        #imwrite_unicode(self.save_path, resultPath, diff_img)
-        #return score
+        results = self.shooting_params.get_difference(prevImg, newImg)
+        before_image,after_image,score = results
+        #toPlotImg = self.shooting_params.get_plot_image(toPlotImg)
+        #return self.count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath)
+        imwrite_unicode(self.save_path, resultPath, np.hstack([before_image, after_image]))
+        return score
         
     
     def begin_shooting(self):
@@ -376,7 +376,7 @@ class ShootingResults:
             prev, new = self.begin_images[i], end_images[i]
             resPath = str(self.current_id)+"_result.jpg"
             self.current_id+=1
-            score = self.calculate_difference_images(prev, new, self.shooting_params.get_plot_image(new), resPath)
+            score = self.calculate_difference_images(prev, new, new, resPath)
             # score = self.calculate_difference_images(prev, new, cropped_images[i], resPath)
 
             scores.append(score)
