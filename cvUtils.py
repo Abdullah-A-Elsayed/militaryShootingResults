@@ -60,8 +60,11 @@ def alignImages(im1, im2):
     return im1Reg, h
 def get_center(cnt):
     M = cv2.moments(cnt)
-    cx = int(M['m10']/M['m00'])
-    cy = int(M['m01']/M['m00'])
+    if M["m00"] != 0:
+        cx = int(M['m10']/M['m00'])
+        cy = int(M['m01']/M['m00'])
+    else:
+        cx=cy=0
     return (cx,cy)
 def scale_contour(cnt, scale):
     cx, cy = get_center(cnt)

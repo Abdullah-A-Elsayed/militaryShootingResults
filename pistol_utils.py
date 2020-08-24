@@ -170,12 +170,12 @@ def get_diff_pistol(img1, img2, index, thresh=10):
 
     print("circles = ", len(circles))
     cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/result"+str(index)+".jpg", output) #np.hstack([image, output]))
-
+'''
 img1 = cv2.imread("C:/Users/Abdallah Reda/Desktop/t1.JPG")
 img2 = cv2.imread("C:/Users/Abdallah Reda/Desktop/t2.JPG")
 #print(img.shape)
 imgs2 = cropImage(img2, 10, 2)
-imgs1 = cropImage(img1, 10, 1)
+imgs1 = cropImage(img1, 10,
 i=1
 for pair in zip(imgs1[0], imgs2[0]):
     print(pair[0].shape, pair[1].shape)
@@ -186,3 +186,4 @@ for pair in zip(imgs1[0], imgs2[0]):
     i+=1
     #break
 #get_diff_pistol(10)
+'''

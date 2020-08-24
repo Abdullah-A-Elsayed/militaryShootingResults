@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 def get_center(cnt):
     M = cv2.moments(cnt)
@@ -29,8 +30,16 @@ def draw_circles(img):
     x, y, w, h = cv2.boundingRect(largest_area)
     cx = x+w//2
     cy = y+h//2
+
+    mask = np.ones(img.shape)
+    #contour-=[x-margin,y-margin]
+    mask = cv2.drawContours(mask, [largest_area], -1, 0, cv2.FILLED)
+    #cv2.fillConvexPoly(mask, contour, (0,0,0))
+    # Generate output
+    #print(output.shape, mask.shape)
     output = img.copy()
     output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
+    #output[mask.astype(np.bool)] = 0
     END_RADIUS = w//2
     COUNT = 5
     scores = ["50","40","30","20","10"]

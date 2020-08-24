@@ -3,6 +3,7 @@ import ak47_utils
 import pistol_utils
 import cap
 from enum import Enum
+from draw_circles import draw_circles
 
 class ShootingStringTypes():
     AK47 =  "آلي نهاري"
@@ -46,11 +47,13 @@ class mParams:
         return None
     def get_difference(self, prevImg, newImg):
         return None
+    def get_plot_image(self, newImg):
+        return newImg
 
 class AK47_params(mParams):
     # REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF2.jpg"
-    HORIZONTAL_SEPARATOR_BEGIN = 1500
-    HORIZONTAL_SEPARATOR_END = 4000-1200
+    HORIZONTAL_SEPARATOR_BEGIN = 1200
+    HORIZONTAL_SEPARATOR_END = 4000-1600
     VERTICAL_SEPARATOR = 1200
     MAX_SHOOTERS = 5
     THRESH_BINARY = 100#90
@@ -60,10 +63,10 @@ class AK47_params(mParams):
     hough_param2 = 8
     hough_minRadius = 10
     hough_maxRadius = 24 # 10,15
-    connected_components_min_area = 600
-    connected_components_max_area = 900
-    res_plot_radius = 10        #13
-    res_plot_thickness = 3     #14
+    connected_components_min_area = 20
+    connected_components_max_area = 150
+    res_plot_radius = 8        #13
+    res_plot_thickness = 2     #14
 
     def cropImage(self, img, num_shooters):
         height, width, colors = img.shape
@@ -112,6 +115,14 @@ class AK47_params(mParams):
         '''
         return ak47_utils.process_and_get_diff_ak(prevImg, newImg)
 
+
+    def get_plot_image(self, newImg):
+        output = newImg.copy()
+        print("output shape",output.shape)
+        #output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
+        output = draw_circles(output)   #takes gray image, returns BGR image
+        return output
+
 class Pistol_params(mParams):
     # REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/Ref_bg.jpg"
     HORIZONTAL_SEPARATOR_BEGIN = 1250
@@ -125,11 +136,11 @@ class Pistol_params(mParams):
     hough_param2 = 8
     hough_minRadius = 10
     hough_maxRadius = 24 # 10,15
-    connected_components_min_area = 600
-    connected_components_max_area = 900
+    connected_components_min_area = 400
+    connected_components_max_area = 600
     res_plot_radius = 13
     res_plot_thickness = 14
-
+    #index=0
     def cropImage(self, img, num_shooters):
         return pistol_utils.cropImage(img, num_shooters)[0]
     def process_image(self, img):
@@ -144,15 +155,18 @@ class Pistol_params(mParams):
         #cv2.waitKey(0)
         #cv2.imshow('img2',img2)
         #cv2.waitKey(0)
+        #self.index+=1
         diff = cv2.absdiff(newImg,prevImg)
-        #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_gray"+str(index)+".jpg",diff)
+        #cv2.imwrite('C:\\Users\\Abdelrahman Ezzat\\Desktop\\New folder\\diff_'+str(self.index)+'.jpg',diff)
+        #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_gray"+str(self.index)+".jpg",diff)
         bw1 = cv2.threshold(diff, Pistol_params.THRESH_BINARY, 255, cv2.THRESH_BINARY)[1]
-        #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_bin"+str(index)+".jpg",bw1)
-
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(19,19))
+        #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_bin"+str(self.index)+".jpg",bw1)
+        #cv2.imwrite('C:\\Users\\Abdelrahman Ezzat\\Desktop\\New folder\\diff_thresh'+str(self.index)+'.jpg',bw1)
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(11,11))
         bw1 = cv2.dilate(bw1,kernel,iterations = 1)
+        #cv2.imwrite('C:\\Users\\Abdelrahman Ezzat\\Desktop\\New folder\\diff_dilated'+str(self.index)+'.jpg',bw1)
         #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_bin_dilated"+str(index)+".jpg",bw1)
-        return bw1
+        return bw1,prevImg, newImg
 
 class Morris_params(mParams):
     REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF2.jpg"
@@ -235,6 +249,7 @@ class ShootingResults:
         #InputImage = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/difference_before.jpg"
         #img = cv2.imread(imagePath)
         processed_image = self.shooting_params.process_image(img)
+        #print("processed image,",processed_image)
         imwrite_unicode(self.save_path, newImageName, processed_image)
         return processed_image
     def prepare_collected_images(self, c):
@@ -264,6 +279,8 @@ class ShootingResults:
         return 0
         
     def count_and_plot_connectedComponents(self, detectionImage, plotImage, saveName):
+        if len(detectionImage.shape)==3:
+            detectionImage = cv2.cvtColor(detectionImage, cv2.COLOR_BGR2GRAY)
         op = cv2.connectedComponentsWithStats(detectionImage, connectivity=8, ltype= cv2.CV_32S)
         centroids = op[3]
         bodies = op[2]
@@ -275,9 +292,10 @@ class ShootingResults:
             #print(c)
             area = bodies[i][4]
             width = bodies[i][2]
-            print(area)
+            print("area of body",i,":",area)
             #280-900 for (9,9) dilate kernel
-            if(self.shooting_params.connected_components_min_area <= area <= self.shooting_params.connected_components_min_area):
+            #print(self.shooting_params.connected_components_min_area,area,self.shooting_params.connected_components_max_area)
+            if(self.shooting_params.connected_components_min_area <= area <= self.shooting_params.connected_components_max_area):
                 score += 1
                 cv2.circle(plotImage, (c[0],c[1]), self.shooting_params.res_plot_radius, (0,0,255), self.shooting_params.res_plot_thickness) #radius of width//2
         #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
@@ -298,7 +316,9 @@ class ShootingResults:
     def calculate_difference_images(self, prevImg, newImg, toPlotImg, resultPath):
         #prev = cv2.imread(previousImagePath,0)
         #new = cv2.imread(newImagePath,0)
-        diff_img = self.shooting_params.get_difference(prevImg, newImg)
+        images = self.shooting_params.get_difference(prevImg, newImg)
+        diff_img,_,toPlotImg = images
+        toPlotImg = self.shooting_params.get_plot_image(toPlotImg)
         return self.count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath)
         #imwrite_unicode(self.save_path, resultPath, diff_img)
         #return score
@@ -306,8 +326,11 @@ class ShootingResults:
     
     def begin_shooting(self):
         #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_before.jpg")
-        # full_image_path = "sample/DSC_0026NL.jpg"
-        full_image_path =  get_configuration("PATHS","Sample1")
+        #full_image_path = self.save_path+str(self.current_id)+"_full_before.jpg"
+        if self.shooting_type == ShootingTypes.PISTOL:
+            full_image_path =  get_configuration("PATHS","Sample1")
+        else:
+            full_image_path =  get_configuration("PATHS","AKSample1")
         full_image = cv2.imread(full_image_path)
         #cv2.imshow('png',full_image)
         cropped_images = self.cropImage(full_image)
@@ -328,9 +351,12 @@ class ShootingResults:
     scores: list of ints which are the score of each target
     path: save path of resulting image for each target'''
     def end_shooting(self):
-        #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_before.jpg")
-        # full_image_path = "sample/DSC_0027NL.jpg"
-        full_image_path = get_configuration("PATHS","Sample2")
+        #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_after.jpg")
+        #full_image_path = self.save_path+str(self.current_id)+"_full_after.jpg"
+        if self.shooting_type == ShootingTypes.PISTOL:
+            full_image_path =  get_configuration("PATHS","Sample2")
+        else:
+            full_image_path =  get_configuration("PATHS","AKSample2")
         full_image = cv2.imread(full_image_path)
         cropped_images = self.cropImage(full_image)
         end_images = []
@@ -346,11 +372,12 @@ class ShootingResults:
             return
         scores = []
         paths = []
-        for i in range(-1, -1 - self.num_shooters, -1):
+        for i in range(len(end_images)):
             prev, new = self.begin_images[i], end_images[i]
             resPath = str(self.current_id)+"_result.jpg"
             self.current_id+=1
-            score = self.calculate_difference_images(prev, new, cropped_images[i], resPath)
+            score = self.calculate_difference_images(prev, new, self.shooting_params.get_plot_image(new), resPath)
+            # score = self.calculate_difference_images(prev, new, cropped_images[i], resPath)
 
             scores.append(score)
             paths.append(self.save_path+resPath)
@@ -362,6 +389,41 @@ class ShootingResults:
 #n_pistol_image = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/processed.jpg"
 #sr_pistol.prepare_image(pistol_image, n_pistol_image)
 #exit()
+
+
+'''
+sr.begin_images = []
+for i in range(1,6): #get rightmost {num_shooters} images from right to left
+    index = - 1 - i
+    #cv2.imwrite( (self.save_path+str(self.current_id+index)+"_cropped.jpg").encode('UTF-8'), cropped_images[i])
+    img1 = cv2.imread(sr.save_path+ str(i) +"_cropped.jpg")
+    #imwrite_unicode(sr.save_path, str(self.current_id+index)+"_cropped.jpg", cropped_images[i])
+    resPath = str(i)+"_before.jpg"
+    processed = sr.prepare_image(img1, resPath)
+    sr.begin_images.append(processed)
+end_images = []
+for i in range(1,6): #get rightmost {num_shooters} images from right to left
+    img2 = cv2.imread(sr.save_path+ str(i) +"_cropped_after.jpg")
+    
+    resPath = str(i)+"_after.jpg"
+    processed = sr.prepare_image(img2, resPath)
+    end_images.append(processed)
+
+scores = []
+
+for i in range(3,4):
+    prev, new = sr.begin_images[i-1], end_images[i-1]
+    #print("prev,",prev)
+    #print("new,",new)
+    resPath = str(sr.current_id)+"_result.jpg"
+    sr.current_id+=1
+    score = sr.calculate_difference_images(prev, new, new, resPath)
+    # score = self.calculate_difference_images(prev, new, cropped_images[i], resPath)
+
+    scores.append(score)
+    #paths.append(self.save_path+resPath)
+print(scores)
+'''
 '''
 sr = ShootingResults("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/",1)
 prev = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/processed_1_binary_before.jpg"

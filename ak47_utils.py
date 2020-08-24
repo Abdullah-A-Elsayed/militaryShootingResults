@@ -154,17 +154,17 @@ def process(img):
     ## convert to hsv
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     ## mask of blue (140,70,65) ~ (210, 44, 35)
-    #mask_shapeblue = cv2.inRange(hsv, (75,0,0), (180, 255, 255))
-    mask_shapeblue = cv2.inRange(hsv, (0,25,0), (180, 255, 255))
+    mask_shapeblue = cv2.inRange(hsv, (75,0,0), (180, 255, 255))
+    #mask_shapeblue = cv2.inRange(hsv, (0,25,0), (180, 255, 255))
 
     ## final mask and masked
     #mask = cv2.bitwise_or(mask1, mask2)
-    mask_shape_inverted = mask_shapeblue#cv2.bitwise_not(mask_shapeblue)
+    mask_shape_inverted = cv2.bitwise_not(mask_shapeblue)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,9))
     mask_shape_eroded = cv2.morphologyEx(mask_shape_inverted, cv2.MORPH_DILATE, kernel,iterations=1)
     mask_shape_eroded = cv2.morphologyEx(mask_shape_eroded, cv2.MORPH_ERODE, kernel,iterations=2)
-    # cv2.imshow("mask",mask_shape_eroded)
-    # cv2.waitKey(0)
+    #cv2.imshow("mask",mask_shape_eroded)
+    #cv2.waitKey(0)
     #crop white paper from whole image
     contours, hierarchy = cv2.findContours(mask_shape_eroded, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     print("contours lenghth ",len(contours))
@@ -187,7 +187,8 @@ def process(img):
     print("contours lenghth ",len(contours))
 
     largest_areas = sorted(contours, key=cv2.contourArea)
-    largest_area = largest_areas[-2]
+    print("contours length,",len(contours))
+    largest_area = largest_areas[-1]
     #for l in largest_areas:
     #    print(cv2.contourArea(l))
     x, y, w, h = cv2.boundingRect(largest_area)
@@ -212,7 +213,73 @@ def process(img):
     ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop_shape1.jpg",output)
     ##cv2.imwrite(savePath,detectionImage_shape)
     return detectionImage_shape
-    
+
+
+def process_and_get_diff_ak_kk(bef_img, aft_img, idx=None):
+    before_image = cv2.cvtColor(bef_img, cv2.COLOR_BGR2GRAY)
+    after_image = cv2.cvtColor(aft_img, cv2.COLOR_BGR2GRAY)
+    #print("both_shape:",after_image.shape,before_image.shape)
+    before_image = cv2.threshold(before_image, 40, 255, cv2.THRESH_BINARY)[1] #to be parameterized
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/single_processed"+ str(idx) +".jpg",before_image)
+    #after_image = cv2.cvtColor(after_image, cv2.COLOR_BGR2GRAY)
+    after_image = cv2.threshold(after_image, 40, 255, cv2.THRESH_BINARY)[1] #to be parameterized
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/single_processed_after"+ str(idx) +".jpg",after_image)
+    k1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
+    before_image = cv2.morphologyEx(before_image, cv2.MORPH_DILATE, k1)
+    after_image = cv2.morphologyEx(after_image, cv2.MORPH_DILATE, k1)
+    output = after_image.copy()
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/single_processed_after_dilated"+ str(idx) +".jpg",after_image)
+    print("output shape",output.shape)
+    output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
+    #output = draw_circles(output)   #takes gray image, returns BGR image
+
+    #print("after_shape:",after_image.shape)
+    op = cv2.connectedComponentsWithStats(after_image, connectivity=8, ltype= cv2.CV_32S)
+    centroids = op[3]
+    bodies = op[2]
+    #print(len(centroids))
+    centroids = np.round(centroids).astype("int")
+    score = 0
+    #print("after", centroids)
+    for i,c in enumerate(centroids):
+        #print(c)
+        area = bodies[i][4]
+        width = bodies[i][2]
+        print("area",i,"=",area)
+        #280-900 for (9,9) dilate kernel
+        if(60 <= area <= 150):
+            score += 1
+            cv2.circle(output, (c[0],c[1]), 10, (0,0,255), 3) #radius of width//2
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/res_after"+ str(idx) +".jpg",output)
+
+
+    output = before_image.copy()
+    output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
+    #output = draw_circles(output)   #takes gray image, returns BGR image
+
+    #print("after_shape:",after_image.shape)
+    op = cv2.connectedComponentsWithStats(before_image, connectivity=8, ltype= cv2.CV_32S)
+    centroids = op[3]
+    bodies = op[2]
+    #print(len(centroids))
+    centroids = np.round(centroids).astype("int")
+    score_bef = 0
+    #print("after", centroids)
+    for i,c in enumerate(centroids):
+        #print(c)
+        area = bodies[i][4]
+        width = bodies[i][2]
+        print("area",i,"=",area)
+        #280-900 for (9,9) dilate kernel
+        if(60 <= area <= 150):
+            score_bef += 1
+            cv2.circle(output, (c[0],c[1]), 10, (0,0,255), 3) #radius of width//2
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/res_before"+ str(idx) +".jpg",output)
+    print(score - score_bef)
+    return output
+
 def process_and_get_diff_ak(before_image, after_image, idx=None):
     """
     Takes two BGR images for an AK47 shooting targets, and calculates the difference in bullets
@@ -237,6 +304,9 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
     before_image = cv2.cvtColor(before_image, cv2.COLOR_BGR2GRAY)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,9))
     
+    #cv2.imshow("i1_aligned", before_image)
+    #cv2.imshow("i2_aligned", after_image_aligned)
+    #cv2.waitKey(0)
     after_image_processed = cv2.morphologyEx(after_image_aligned, cv2.MORPH_ERODE, kernel,iterations=3)
     after_image_processed = cv2.morphologyEx(after_image_processed, cv2.MORPH_DILATE, kernel,iterations=4)
     after_image_processed = cv2.threshold(after_image_processed, 85, 255, cv2.THRESH_BINARY)[1] #to be parameterized
@@ -257,7 +327,8 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
     #cnts2, _ = cv2.findContours(before_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     cnts1.sort(key=cv2.contourArea)
     cnts2.sort(key=cv2.contourArea)
-    #print(len(cnts1))
+    print("diff cnts1 len:",len(cnts1))
+    print("diff cnts2 len:",len(cnts2))
     large_cnt1 = cnts1[-2]
     large_cnt2 = cnts2[-2]
 
@@ -275,14 +346,17 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
     #translate shifted image to center of contour
     center1 = get_center(large_cnt1)
     center2 = get_center(large_cnt2)
+    
     if cv2.contourArea(large_cnt1) < cv2.contourArea(large_cnt2):
         min_cnt = large_cnt1
-        cx,cy = center1[0]-center2[0], center1[1]-center2[1]
-        before_image = translate_image(before_image, cx, cy)
+        if center1!=(0,0) and center2!=(0,0):
+            cx,cy = center1[0]-center2[0], center1[1]-center2[1]
+            before_image = translate_image(before_image, cx, cy)
     else:
         min_cnt = large_cnt2
-        cx,cy = center2[0]-center1[0], center2[1]-center1[1]
-        after_image_aligned = translate_image(after_image_aligned, cx, cy)
+        if center1!=(0,0) and center2!=(0,0):
+            cx,cy = center2[0]-center1[0], center2[1]-center1[1]
+            after_image_aligned = translate_image(after_image_aligned, cx, cy)
     #print(cx, cy)
     #cv2.imshow('new', after_image_aligned)
     #cv2.imshow('new', before_image)
@@ -297,6 +371,9 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
 
     after_image_aligned = r1
     before_image = r2
+    #cv2.imshow("before_diff_1", before_image)
+    #cv2.imshow("before_diff_2", after_image_aligned)
+    #cv2.waitKey(0)
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/n1_"+ str(idx) +".jpg",after_image_aligned)
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/n2_"+ str(idx) +".jpg",before_image)
     #print(after_image_aligned.shape, h.shape)
@@ -305,20 +382,27 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
     ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_21_edit.jpg",img2)
     ''' CALCULATE DIFFERENCE'''
     diff = cv2.subtract(after_image_aligned,before_image)
-    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/diff_align_"+ str(idx) +".jpg",diff)
-    diff = cv2.threshold(diff,25,255,cv2.THRESH_BINARY)[1]
-    diff = cv2.GaussianBlur(diff, (5,5), 2)
-    diff = cv2.threshold(diff,70,255,cv2.THRESH_BINARY)[1]
+    #cv2.imshow("diff", diff)
+    #cv2.waitKey(0)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_align_"+ str(idx) +".jpg",diff)
+    diff = cv2.threshold(diff,10,255,cv2.THRESH_BINARY)[1]
+    #cv2.imshow("diff_bef_gauss", diff)
+    #cv2.waitKey(0)
+    diff = cv2.GaussianBlur(diff, (15,15), 2)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_blurred_"+ str(idx) +".jpg",diff)
+    diff = cv2.threshold(diff,50,255,cv2.THRESH_BINARY)[1]
+    #cv2.imshow("diff_after_gauss", diff)
+    #cv2.waitKey(0)
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/diff_thresh_"+ str(idx) +".jpg",diff)
-    k1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
-    k2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15,15))
-    diff = cv2.morphologyEx(diff, cv2.MORPH_ERODE, k1)
-    # cv2.imshow('diff_eroded', diff)
-    # cv2.waitKey(0)
-    diff = cv2.morphologyEx(diff, cv2.MORPH_DILATE, k2, iterations=2)
+    k1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
+    k2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
+    #diff = cv2.morphologyEx(diff, cv2.MORPH_ERODE, k1)
+    #cv2.imshow('diff_eroded', diff)
+    #cv2.waitKey(0)
+    #diff = cv2.morphologyEx(diff, cv2.MORPH_DILATE, k2, iterations=1)
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/diff_dilated"+ str(idx) +".jpg",diff)
-    # cv2.imshow('diff_dilated', diff)
-    # cv2.waitKey(0)
+    #cv2.imshow('diff_dilated', diff)
+    #cv2.waitKey(0)
     '''
     circles = cv2.HoughCircles(diff,cv2.HOUGH_GRADIENT,1,minDist=15, param1=118,param2=8,minRadius=3,maxRadius=25) # 10,15
     if circles is not None:
@@ -341,10 +425,10 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
         #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_res.jpg",output)
 
         '''
-    output = after_image_aligned.copy()
-    print("output shape",output.shape)
+    #output = after_image_aligned.copy()
+    #print("output shape",output.shape)
     #output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
-    output = draw_circles(output)   #takes gray image, returns BGR image
+    #output = draw_circles(output)   #takes gray image, returns BGR image
     '''
     op = cv2.connectedComponentsWithStats(diff, connectivity=8, ltype= cv2.CV_32S)
     centroids = op[3]
@@ -365,7 +449,7 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
     return output, score
     '''
-    return output
+    return diff, before_image, after_image_aligned
 
 def cropImage(img, numberOfShapes):
     """
@@ -392,9 +476,9 @@ def cropImage(img, numberOfShapes):
         # n += 1
     print(len(imgList))
     return imgList
-img2_path = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\1"
-img1 = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\2.jpg"
-
+#img2_path = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\1"
+#img1 = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\2.jpg"
+'''
 save_path = "C:/Users/Abdallah Reda/Desktop/test_ak/"
 #img2 = cv2.imread(img2)
 img1 = cv2.imread(img1)
@@ -417,3 +501,4 @@ for i in range(len(cropped1)):
 
 #processed1 = process(cropped2[4])
 ##cv2.imwrite(save_path+"proc1_4.jpg", processed1)
+'''
