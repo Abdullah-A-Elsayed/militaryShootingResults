@@ -296,8 +296,8 @@ def process_and_get_diff_ak_kk(bef_img, aft_img, idx=None):
     cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/res_after"+ str(idx) +".jpg",output)
 
 
-    output = before_image.copy()
-    output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
+    output2 = before_image.copy()
+    output2 = cv2.cvtColor(output2, cv2.COLOR_GRAY2BGR)
     #output = draw_circles(output)   #takes gray image, returns BGR image
 
     #print("after_shape:",after_image.shape)
@@ -316,11 +316,11 @@ def process_and_get_diff_ak_kk(bef_img, aft_img, idx=None):
         #280-900 for (9,9) dilate kernel
         if(20 <= area <= 120):
             score_bef += 1
-            cv2.circle(output, (c[0],c[1]), width//2, (0,0,255), 3) #radius of width//2
+            cv2.circle(output2, (c[0],c[1]), width//2, (0,0,255), 3) #radius of width//2
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/res_before"+ str(idx) +".jpg",output)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/res_before"+ str(idx) +".jpg",output2)
     print(score - score_bef)
-    return output
+    return output2, output, score - score_bef
 
 def process_and_get_diff_ak(before_image, after_image, idx=None):
     """
@@ -544,7 +544,7 @@ for i in range(len(cropped1)):
 #processed1 = process(cropped2[4])
 ##cv2.imwrite(save_path+"proc1_4.jpg", processed1)
 '''
-
+'''
 img1 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\testd\\2_before.jpg"
 img2 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\testd\\2_after.jpg"
 # img1 = "C:/Users/Abdelrahman Ezzat/Desktop/New folder/final_crop_shape_before.jpg"
@@ -557,3 +557,4 @@ img2 = cv2.imread(img2)
 
 
 process_and_get_diff_ak_kk(img1,img2)
+'''
