@@ -167,7 +167,7 @@ def process(img):
     #cv2.waitKey(0)
     #crop white paper from whole image
     contours, hierarchy = cv2.findContours(mask_shape_eroded, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    print("contours lenghth ",len(contours))
+    #print("contours length in ak47 process whole shape",len(contours))
     largest_area = sorted(contours, key=cv2.contourArea)[-2]
     x, y, w, h = cv2.boundingRect(largest_area)
     detectionImage_paper = img[y:y+h, x:x+w]
@@ -184,10 +184,10 @@ def process(img):
     #cv2.waitKey(0)
 
     contours, hierarchy = cv2.findContours(detectionImage_paper_bin, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    print("contours lenghth ",len(contours))
+    #print("contours length in ak47 process paper ",len(contours))
 
     largest_areas = sorted(contours, key=cv2.contourArea)
-    print("contours length,",len(contours))
+    #print("contours length in ak47 process whole shape,",len(contours))
     largest_area = largest_areas[-1]
     #for l in largest_areas:
     #    print(cv2.contourArea(l))
@@ -207,7 +207,7 @@ def process(img):
     ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/jagged.jpg",mask_shape)
     #output = cv2.bitwise_and(detectionImage_shape, mask_shape)
     output = detectionImage_shape.copy()
-    print(output.shape, mask_shape.shape)
+    #print(output.shape, mask_shape.shape)
     output[mask_shape.astype(np.bool)] = 255
     ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop.jpg",detectionImage_paper)
     ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop_shape1.jpg",output)
@@ -279,8 +279,8 @@ def process_and_get_diff_ak_kk(bef_img, aft_img, idx=None):
     cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/res_before"+ str(idx) +".jpg",output)
     print(score - score_bef)
     return output
-
-def process_and_get_diff_ak(before_image, after_image, idx=None):
+idx=49
+def process_and_get_diff_ak(before_image, after_image):#, idx=None):
     """
     Takes two BGR images for an AK47 shooting targets, and calculates the difference in bullets
 
@@ -292,9 +292,14 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
             End image; image after shooting
     Returns:
     -----------
-        output: np.ndarray
-            The end image with white circles drawn on the target shape, and new bullets marked with red circles
+        diff: np.ndarray
+            The difference between both images
+        new_image: np.ndarray
+            The new image to be used to plot results
+        contour:
+            The used contour to reduce the area of detection
     """
+    global idx
     # before_image=cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_11.jpg")
     # queryImg=cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_21.jpg")
     # before_image=cv2.imread(before_path)
@@ -327,8 +332,8 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
     #cnts2, _ = cv2.findContours(before_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     cnts1.sort(key=cv2.contourArea)
     cnts2.sort(key=cv2.contourArea)
-    print("diff cnts1 len:",len(cnts1))
-    print("diff cnts2 len:",len(cnts2))
+    print("diff cnts1 len in ak get diff:",len(cnts1))
+    print("diff cnts2 len in ak get diff:",len(cnts2))
     large_cnt1 = cnts1[-2]
     large_cnt2 = cnts2[-2]
 
@@ -363,6 +368,8 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
     #cv2.waitKey(0)
     r1 = cvUtils.__cropContourMaskingOutInfo(after_image_aligned, min_cnt, 10, 255)
     r2 = cvUtils.__cropContourMaskingOutInfo(before_image, min_cnt, 10, 255)
+    x, y, w, h = cv2.boundingRect(min_cnt)
+    min_cnt -= [x-10,y-10]
     # cv2.imshow('orig', r2)
     # cv2.waitKey(0)
     # cv2.imshow('new', r1)
@@ -371,9 +378,11 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
 
     after_image_aligned = r1
     before_image = r2
-    #cv2.imshow("before_diff_1", before_image)
-    #cv2.imshow("before_diff_2", after_image_aligned)
-    #cv2.waitKey(0)
+    r1 = cv2.drawContours(after_image_aligned, [min_cnt], -1, (0,255,0),3)
+    r2 = cv2.drawContours(before_image, [min_cnt], -1, (0,255,0),3)
+    cv2.imshow("before_diff_1", r1)
+    cv2.imshow("before_diff_2", r2)
+    cv2.waitKey(0)
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/n1_"+ str(idx) +".jpg",after_image_aligned)
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/n2_"+ str(idx) +".jpg",before_image)
     #print(after_image_aligned.shape, h.shape)
@@ -388,9 +397,26 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
     diff = cv2.threshold(diff,10,255,cv2.THRESH_BINARY)[1]
     #cv2.imshow("diff_bef_gauss", diff)
     #cv2.waitKey(0)
-    diff = cv2.GaussianBlur(diff, (15,15), 2)
+    diff = cv2.GaussianBlur(diff, (15,15), 5)
     cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_blurred_"+ str(idx) +".jpg",diff)
-    diff = cv2.threshold(diff,50,255,cv2.THRESH_BINARY)[1]
+    #Kernel_sharpen = np.array([[-1,-1,-1], [-1, 9,-1],[-1,-1,-1]])
+    #diff = cv2.filter2D(diff, -1, Kernel_sharpen)
+    print("diff shape",diff.shape)
+    n_diff = np.zeros_like(diff)
+    alpha = 2.0 # Simple contrast control
+    beta = 50    # Simple brightness control
+    #for y in range(diff.shape[0]):
+    #    for x in range(diff.shape[1]):
+    #        n_diff[y,x] = np.clip(alpha*diff[y,x] + beta, 0, 255)
+    lookUpTable = np.empty((1,256), np.uint8)
+    gamma = 0.4
+    for i in range(256):
+        lookUpTable[0,i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
+    n_diff = cv2.LUT(diff, lookUpTable)
+    cv2.convertScaleAbs(diff, n_diff, alpha, beta)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_sharpened_"+ str(idx) +".jpg",n_diff)
+    diff = cv2.threshold(diff,43,255,cv2.THRESH_BINARY)[1]
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_blurred_threshed_"+ str(idx) +".jpg",diff)
     #cv2.imshow("diff_after_gauss", diff)
     #cv2.waitKey(0)
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/diff_thresh_"+ str(idx) +".jpg",diff)
@@ -449,7 +475,37 @@ def process_and_get_diff_ak(before_image, after_image, idx=None):
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
     return output, score
     '''
-    return diff, before_image, after_image_aligned
+    idx+=1
+    return diff , after_image_aligned, scale_contour(min_cnt, 0.95)
+def count_and_plot_connectedComponents(detectionImage, plotImage, saveName, min_cnt):
+        if len(detectionImage.shape)==3:
+            detectionImage = cv2.cvtColor(detectionImage, cv2.COLOR_BGR2GRAY)
+        op = cv2.connectedComponentsWithStats(detectionImage, connectivity=8, ltype= cv2.CV_32S)
+        centroids = op[3]
+        bodies = op[2]
+        #print(len(centroids))
+        centroids = np.round(centroids).astype("int")
+        score = 0
+        #print("after", centroids)
+        for i,c in enumerate(centroids):
+            #print(c)
+            area = bodies[i][4]
+            width = bodies[i][2]
+            height = bodies[i][3]
+            print("area of body",i,":",area)
+            sx = c[0]-width//2
+            sy = c[1]-height//2
+            if(cv2.pointPolygonTest(min_cnt, (sx,sy), True) > 0):
+                print("body",i,"inside contour")
+            plotImage = cv2.drawContours(plotImage, [min_cnt], -1, (0,255,0),3)
+            #280-900 for (9,9) dilate kernel
+            #print(self.shooting_params.connected_components_min_area,area,self.shooting_params.connected_components_max_area)
+            if(20 <= area <= 150 and cv2.pointPolygonTest(min_cnt, (sx,sy), True) > 0):
+                score += 1
+                cv2.circle(plotImage, (c[0],c[1]), 8, (0,0,255), 2) #radius of width//2
+        cv2.imwrite(saveName,plotImage)
+        #imwrite_unicode(self.save_path, saveName, plotImage)
+        return score
 
 def cropImage(img, numberOfShapes):
     """
@@ -478,6 +534,18 @@ def cropImage(img, numberOfShapes):
     return imgList
 #img2_path = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\1"
 #img1 = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\2.jpg"
+
+img1 = "C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/testg/3_before.jpg"
+img2 = "C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/testg/3_after.jpg"
+resultPath = "C:/Users/Abdelrahman Ezzat/Desktop/New folder/ya rab.jpg"
+img1 = cv2.imread(img1)
+img2 = cv2.imread(img2)
+
+#img2 = cv2.fastNlMeansDenoising(img2,None,10,21,21)
+#cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/denoise3.jpg", img2)
+diff_img,toPlotImg, min_cnt = process_and_get_diff_ak(img1, img2)
+count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath, min_cnt)
+
 '''
 save_path = "C:/Users/Abdallah Reda/Desktop/test_ak/"
 #img2 = cv2.imread(img2)

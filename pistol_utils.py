@@ -69,7 +69,7 @@ def cropImage(img, numberOfShapes, removeBG = True):
 
     for i in range(numberOfShapes):
         if(removeBG):
-            imgCropped= cvUtils.__cropContourMaskingOutInfo(img, target_contours[i])
+            imgCropped= cvUtils.__cropContourMaskingOutInfo(img, target_contours[i], 10, 0)
         else:imgCropped= cvUtils.cropContourFromImage(img, target_contours[i])
         croppedOutImages.append(imgCropped)
 
@@ -124,13 +124,148 @@ cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/vi
 cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/test1_diff.jpg",cv2.subtract(bw1,bw1_before))
 
 '''
+
+def get_diff_align(bef_img, aft_img, idx=None):
+    # before_image=cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_11.jpg")
+    # after_image=cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_21.jpg")
+    before_image=bef_img.copy()
+    after_image=aft_img.copy()
+    before_image = cv2.cvtColor(before_image, cv2.COLOR_GRAY2BGR)
+    after_image = cv2.cvtColor(after_image, cv2.COLOR_GRAY2BGR)
+    after_image_aligned, h = cvUtils.alignImages(after_image,before_image)
+    after_image_aligned = cv2.cvtColor(after_image_aligned, cv2.COLOR_BGR2GRAY)
+    before_image = cv2.cvtColor(before_image, cv2.COLOR_BGR2GRAY)
+    # cv2.imshow("aft", after_image_aligned)
+    # cv2.waitKey(0)
+    eq = cv2.equalizeHist(after_image_aligned)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/equalized_"+str(idx)+".jpg", eq)
+    eq = cv2.Canny(after_image_aligned, 40, 120)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/edged_"+str(idx)+".jpg", eq)
+    ret, i1 = cv2.threshold(after_image_aligned, 10, 255, cv2.THRESH_BINARY)
+    i1 = cv2.medianBlur(i1, 15)
+    # kernel = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(11, 11))
+    # thresholded_img = cv2.morphologyEx(thresholded_img, cv2.MORPH_CLOSE, kernel, iterations=3)
+
+    i1 = cv2.GaussianBlur(i1, (5, 5), 0)
+    #i1 = cv2.Canny(before_image, 30,100)
+
+    cnts1, _ = cv2.findContours(i1, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    ret, i2 = cv2.threshold(before_image, 10, 255, cv2.THRESH_BINARY)
+    i2 = cv2.medianBlur(i2, 15)
+    # kernel = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(11, 11))
+    # thresholded_img = cv2.morphologyEx(thresholded_img, cv2.MORPH_CLOSE, kernel, iterations=3)
+
+    i2 = cv2.GaussianBlur(i2, (5, 5), 0)
+
+    cnts2, _ = cv2.findContours(i2, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #cnts2, _ = cv2.findContours(before_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    cnts1.sort(key=cv2.contourArea)
+    cnts2.sort(key=cv2.contourArea)
+    #print(len(cnts1))
+    im_copy = np.zeros_like(after_image_aligned)
+    im_copy = cv2.cvtColor(im_copy, cv2.COLOR_GRAY2BGR)
+    large_cnt1 = cnts1[-1]
+    cv2.drawContours(im_copy, [large_cnt1], 0, (255, 0, 0), 3)
+    #cv2.imshow('orig', im_copy)
+    #cv2.waitKey(0)
+    #im_copy = after_image_aligned.copy()
+    large_cnt2 = cnts2[-1]
+    cv2.drawContours(im_copy, [large_cnt2], 0, (0, 255, 0), 3)
+    # cv2.imshow('new', im_copy)
+    # cv2.waitKey(0)
+    #large_cnt2 = scale_contour(cnts2[-2], 0.9)
+    min_cnt = large_cnt1 if cv2.contourArea(large_cnt1) < cv2.contourArea(large_cnt2) else large_cnt2
+    r1 = cvUtils.__cropContourMaskingOutInfo(after_image_aligned, min_cnt, 0, 255)
+    r2 = cvUtils.__cropContourMaskingOutInfo(before_image, min_cnt, 0, 255)
+    print('shapes',i1.shape,after_image_aligned.shape, r1.shape)
+    #cv2.imshow("aft", r1)
+    #cv2.waitKey(0)
+    # cv2.imshow('orig', r2)
+    # cv2.waitKey(0)
+    # cv2.imshow('new', r1)
+    # cv2.waitKey(0)
+    #exit()
+
+    after_image_aligned = r1
+    before_image = r2
+    #print(after_image_aligned.shape, h.shape)
+    #img1 = cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_21.jpg")
+    #img2 = IDMatcher(img1, "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_11.jpg")
+    #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_21_edit.jpg",img2)
+    diff = cv2.absdiff(after_image_aligned,before_image)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/absdiff_"+ str(idx) +".jpg",diff)
+    k1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
+    k2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (11,11))
+    #diff = cv2.threshold(diff,25,255,cv2.THRESH_BINARY)[1]
+    diff = cv2.inRange(diff,50,140)
+    #diff = cv2.threshold(diff,127, 255, cv2.THRESH_OTSU)[1]
+    diff = cv2.morphologyEx(diff, cv2.MORPH_DILATE, k1, iterations=1)
+    diff = cv2.GaussianBlur(diff, (5,5), 2)
+    diff = cv2.threshold(diff,70,255,cv2.THRESH_BINARY)[1]
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/thresh_"+ str(idx) +".jpg",diff)
+    diff = cv2.morphologyEx(diff, cv2.MORPH_ERODE, k1, iterations=1)
+    # cv2.imshow('diff_eroded', diff)
+    # cv2.waitKey(0)
+    diff = cv2.morphologyEx(diff, cv2.MORPH_DILATE, k2, iterations=2)
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/diff_dilated_"+ str(idx) +".jpg",diff)
+    # cv2.imshow('diff_dilated', diff)
+    # cv2.waitKey(0)
+    '''
+    circles = cv2.HoughCircles(diff,cv2.HOUGH_GRADIENT,1,minDist=15, param1=118,param2=8,minRadius=3,maxRadius=25) # 10,15
+    if circles is not None:
+        print(circles)
+        print("len,",len(circles[0]))
+        output = diff.copy()
+        output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
+        # convert the (x, y) coordinates and radius of the circles to integers
+        circles = np.round(circles[0, :]).astype("int")
+        # loop over the (x, y) coordinates and radius of the circles
+        for (x, y, r) in circles:
+            # draw the circle in the output image, then draw a rectangle
+            # corresponding to the center of the circle
+            cv2.circle(output, (x, y), r, (0, 0, 255), 2)
+            #cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+        # show the output image
+        #cv2.imshow("output", np.hstack([image, output]))
+        #cv2.waitKey(0)
+            #print("Dasdaoajoijnsss")
+        cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_res.jpg",output)
+
+        '''
+    output = after_image_aligned.copy()
+    output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
+    op = cv2.connectedComponentsWithStats(diff, connectivity=8, ltype= cv2.CV_32S)
+    centroids = op[3]
+    bodies = op[2]
+    #print(len(centroids))
+    centroids = np.round(centroids).astype("int")
+    #print("after", centroids)
+    for i,c in enumerate(centroids):
+        #print(c)
+        area = bodies[i][4]
+        width = bodies[i][2]
+        height = bodies[i][3]
+        print(area)
+        #280-900 for (9,9) dilate kernel
+        sx = c[0]-width//2
+        sy = c[1]-height//2
+        if(cv2.pointPolygonTest(min_cnt, (sx,sy), True) > 0):
+            print("yes")
+        score = 0
+        if(800 <= area <= 1200): 
+            cv2.circle(output, (c[0],c[1]), width//2, (0,0,255), 3)
+            score+=1
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/res_"+str(idx) +".jpg",output)
+    return output, score, after_image
+
 def get_diff_pistol(img1, img2, index, thresh=10):
     #img1 = cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/test4_before.jpg", 0)
     #img2 = cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/test4.jpg", 0)
-    print("diff",img1.dtype)
+    print("img1 dtype",img1.dtype)
     img1 = np.array(img1, dtype=np.uint8)
     img2 = np.array(img2, dtype=np.uint8)
-    print("diff",img1.dtype)
+    print("img1 dtype",img1.dtype)
     if(len(img1.shape)>2):
         img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
     if(len(img2.shape)>2):
@@ -170,20 +305,27 @@ def get_diff_pistol(img1, img2, index, thresh=10):
 
     print("circles = ", len(circles))
     cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/result"+str(index)+".jpg", output) #np.hstack([image, output]))
+
+
+img1 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\pistol6\\3_before.jpg"
+img2 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\pistol6\\3_after.jpg"
+img1 = cv2.imread(img1,0)
+img2 = cv2.imread(img2,0)
+get_diff_align(img1, img2,4)
+
 '''
-img1 = cv2.imread("C:/Users/Abdallah Reda/Desktop/t1.JPG")
-img2 = cv2.imread("C:/Users/Abdallah Reda/Desktop/t2.JPG")
 #print(img.shape)
-imgs2 = cropImage(img2, 10, 2)
-imgs1 = cropImage(img1, 10,
+imgs2 = cropImage(img2, 5)
+imgs1 = cropImage(img1, 5)
 i=1
 for pair in zip(imgs1[0], imgs2[0]):
     print(pair[0].shape, pair[1].shape)
-    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/cropped_1"+str(i)+".jpg", pair[0]) #np.hstack([image, output]))
-    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/cropped_2"+str(i)+".jpg", pair[1]) #np.hstack([image, output]))
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/cropped_1"+str(i)+".jpg", pair[0]) #np.hstack([image, output]))
+    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/cropped_2"+str(i)+".jpg", pair[1]) #np.hstack([image, output]))
     #print(imgs2[1][i-1] - imgs1[1][i-1])
-    #get_diff_pistol(*pair, i)
+    get_diff_align(*pair, i)
     i+=1
     #break
 #get_diff_pistol(10)
+
 '''

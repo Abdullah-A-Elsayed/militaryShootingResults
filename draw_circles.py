@@ -13,6 +13,7 @@ def draw_circles(img):
     #cv2.waitKey(0)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,9))
+    print("length circle shape", len(img.shape))
     if(len(img.shape)>2):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # proc_img = cv2.morphologyEx(proc_img, cv2.MORPH_ERODE, kernel,iterations=3)

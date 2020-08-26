@@ -147,6 +147,7 @@ class Pistol_params(mParams):
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         return img_gray
     def get_difference(self, prevImg, newImg):
+        '''
         if(len(prevImg.shape)>2):
             prevImg = cv2.cvtColor(prevImg, cv2.COLOR_BGR2GRAY)
         if(len(newImg.shape)>2):
@@ -167,7 +168,8 @@ class Pistol_params(mParams):
         #cv2.imwrite('C:\\Users\\Abdelrahman Ezzat\\Desktop\\New folder\\diff_dilated'+str(self.index)+'.jpg',bw1)
         #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_bin_dilated"+str(index)+".jpg",bw1)
         return bw1,prevImg, newImg
-
+        '''
+        return pistol_utils.get_diff_align(prevImg, newImg)
 class Morris_params(mParams):
     REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF2.jpg"
     HORIZONTAL_SEPARATOR_BEGIN = 1250
@@ -278,7 +280,7 @@ class ShootingResults:
             return len(circles)
         return 0
         
-    def count_and_plot_connectedComponents(self, detectionImage, plotImage, saveName):
+    def count_and_plot_connectedComponents(self, detectionImage, plotImage, saveName, min_cnt):
         if len(detectionImage.shape)==3:
             detectionImage = cv2.cvtColor(detectionImage, cv2.COLOR_BGR2GRAY)
         op = cv2.connectedComponentsWithStats(detectionImage, connectivity=8, ltype= cv2.CV_32S)
@@ -292,10 +294,16 @@ class ShootingResults:
             #print(c)
             area = bodies[i][4]
             width = bodies[i][2]
+            height = bodies[i][3]
             print("area of body",i,":",area)
+            sx = c[0]-width//2
+            sy = c[1]-height//2
+            if(cv2.pointPolygonTest(min_cnt, (sx,sy), True) > 0):
+                print("body",i,"inside contour")
+            plotImage = cv2.drawContours(plotImage, [min_cnt], -1, (0,255,0),3)
             #280-900 for (9,9) dilate kernel
             #print(self.shooting_params.connected_components_min_area,area,self.shooting_params.connected_components_max_area)
-            if(self.shooting_params.connected_components_min_area <= area <= self.shooting_params.connected_components_max_area):
+            if(self.shooting_params.connected_components_min_area <= area <= self.shooting_params.connected_components_max_area and cv2.pointPolygonTest(min_cnt, (sx,sy), True) > 0):
                 score += 1
                 cv2.circle(plotImage, (c[0],c[1]), self.shooting_params.res_plot_radius, (0,0,255), self.shooting_params.res_plot_thickness) #radius of width//2
         #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
@@ -316,21 +324,20 @@ class ShootingResults:
     def calculate_difference_images(self, prevImg, newImg, toPlotImg, resultPath):
         #prev = cv2.imread(previousImagePath,0)
         #new = cv2.imread(newImagePath,0)
-        images = self.shooting_params.get_difference(prevImg, newImg)
-        diff_img,_,toPlotImg = images
+        diff_img,toPlotImg, min_cnt = self.shooting_params.get_difference(prevImg, newImg)
         toPlotImg = self.shooting_params.get_plot_image(toPlotImg)
-        return self.count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath)
-        #imwrite_unicode(self.save_path, resultPath, diff_img)
-        #return score
+        return self.count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath, min_cnt)
+        imwrite_unicode(self.save_path, resultPath, diff_img)
+        return score
         
     
     def begin_shooting(self):
         #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_before.jpg")
         #full_image_path = self.save_path+str(self.current_id)+"_full_before.jpg"
         if self.shooting_type == ShootingTypes.PISTOL:
-            full_image_path =  get_configuration("PATHS","Sample1")
+           full_image_path =  get_configuration("PATHS","Sample1")
         else:
-            full_image_path =  get_configuration("PATHS","AKSample1")
+           full_image_path =  get_configuration("PATHS","AKSample1")
         full_image = cv2.imread(full_image_path)
         #cv2.imshow('png',full_image)
         cropped_images = self.cropImage(full_image)
@@ -354,9 +361,9 @@ class ShootingResults:
         #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_after.jpg")
         #full_image_path = self.save_path+str(self.current_id)+"_full_after.jpg"
         if self.shooting_type == ShootingTypes.PISTOL:
-            full_image_path =  get_configuration("PATHS","Sample2")
+           full_image_path =  get_configuration("PATHS","Sample2")
         else:
-            full_image_path =  get_configuration("PATHS","AKSample2")
+           full_image_path =  get_configuration("PATHS","AKSample2")
         full_image = cv2.imread(full_image_path)
         cropped_images = self.cropImage(full_image)
         end_images = []
