@@ -534,7 +534,7 @@ def cropImage(img, numberOfShapes):
     return imgList
 #img2_path = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\1"
 #img1 = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\2.jpg"
-
+'''
 img1 = "C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/testg/3_before.jpg"
 img2 = "C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/testg/3_after.jpg"
 resultPath = "C:/Users/Abdelrahman Ezzat/Desktop/New folder/ya rab.jpg"
@@ -545,7 +545,7 @@ img2 = cv2.imread(img2)
 #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/denoise3.jpg", img2)
 diff_img,toPlotImg, min_cnt = process_and_get_diff_ak(img1, img2)
 count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath, min_cnt)
-
+'''
 '''
 save_path = "C:/Users/Abdallah Reda/Desktop/test_ak/"
 #img2 = cv2.imread(img2)
