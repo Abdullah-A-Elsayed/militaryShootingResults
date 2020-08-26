@@ -40,23 +40,23 @@ def shooting_process(lineNo):
     # start shooting
     # photo= PhotoImage(file=ImportLib.rel_to_abs('images\\sahm.png')
     # image=photo
-    startBtn= Button(root,  font=helv36, bg="#ccc",text="ابدأ الضرب",  command= lambda: startClicked() ) 
+    startBtn= Button(root,  font=helv36, bg="#ccc",text="لقطة ما قبل الضرب",  command= lambda: startClicked() ) 
     startBtn.place(x=650, y=300)
 
 
     # end shooting
     # image=photo
-    endBtn= Button(root,  font=helv36, bg="#ccc",text="انهي الضرب",  state=DISABLED, command= lambda: endClicked() ) 
-    endBtn.place(x=645, y=400)
+    endBtn= Button(root,  font=helv36, bg="#ccc",text="لقطة ما بعد الضرب",  state=DISABLED, command= lambda: endClicked() ) 
+    endBtn.place(x=650, y=400)
 
     # Next
     photo= PhotoImage(file=ImportLib.rel_to_abs('images\\next.png',__file__))
     nextBtn= Button(root,  image=photo, font=helv36, bg="#ccc",  state=DISABLED, command= lambda: nextClicked() ) 
-    nextBtn.place(x=628, y=485)
+    nextBtn.place(x=670, y=485)
 
     # All Results
     allResBTN= Button(root,  text="النتيجة الكلية للوحدة", font=helv36, bg="#ccc", state=DISABLED, command= lambda: allResClicked(), fg='#f00' ) 
-    allResBTN.place(x=613, y=600)
+    allResBTN.place(x=645, y=600)
 
     #Restart program
     photoRestart= PhotoImage(file=ImportLib.rel_to_abs('images\\restart3.png',__file__))
