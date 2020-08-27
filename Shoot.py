@@ -300,7 +300,7 @@ class ShootingResults:
             sy = c[1]-height//2
             if(cv2.pointPolygonTest(min_cnt, (sx,sy), True) > 0):
                 print("body",i,"inside contour")
-            plotImage = cv2.drawContours(plotImage, [min_cnt], -1, (0,255,0),3)
+            #plotImage = cv2.drawContours(plotImage, [min_cnt], -1, (0,255,0),3)
             #280-900 for (9,9) dilate kernel
             #print(self.shooting_params.connected_components_min_area,area,self.shooting_params.connected_components_max_area)
             if(self.shooting_params.connected_components_min_area <= area <= self.shooting_params.connected_components_max_area and cv2.pointPolygonTest(min_cnt, (sx,sy), True) > 0):

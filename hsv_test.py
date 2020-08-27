@@ -7,16 +7,35 @@ import numpy as np
 def convertToOpenCVHSV(H, S, V):
     return np.array([H // 2, S * 2.55, V * 2.55], np.uint8)
 
+green = np.uint8([[[0, 255, 0]]]) #here insert the bgr values which you want to convert to hsv
+hsvGreen = cv2.cvtColor(green, cv2.COLOR_BGR2HSV)
+#print(hsvGreen[0][0])
+
+lowerLimit = hsvGreen[0][0][0] - 10, 100, 100
+upperLimit = hsvGreen[0][0][0] + 10, 255, 255
+
+#print(upperLimit)
+#print(lowerLimit)
 
 # 1. Load input image
-img = cv2.imread('C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/testg/3_after.jpg')
+img = cv2.imread('C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/pistol1/1_full_after - Copy.jpg')
 
 # 2. Preprocess: quantize the image to reduce the number of colors
 div = 6
 img = img // div * div + div // 2
-cv2.imwrite('C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/testg/3_after_quantized000.jpg', img)
+cv2.imwrite('C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/pistol1/1_full_after_quantized.jpg', img)
+hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+low_yellow = np.array([0,0,198])
+high_yellow = np.array([179,255,255])
+yellow_seg_img = cv2.inRange(hsv_img, low_yellow, high_yellow)
+cv2.imwrite('C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/pistol1/mask.jpg', yellow_seg_img)
+k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
+yellow_seg_img = cv2.morphologyEx(yellow_seg_img, cv2.MORPH_CLOSE, k)
+cv2.imwrite('C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/pistol1/mask_closed.jpg', yellow_seg_img)
+print(hsv_img.shape, yellow_seg_img.shape)
+cv2.imwrite('C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/pistol1/difference.jpg', cv2.subtract(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY),yellow_seg_img))
 
-
+'''
 # 3. Convert to HSV color space
 hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -100,3 +119,4 @@ cv2.imwrite('lego6_img.jpg', img)
 cv2.imshow('img', img)
 cv2.imshow('dbg_img', dbg_img)
 cv2.waitKey(0)
+'''

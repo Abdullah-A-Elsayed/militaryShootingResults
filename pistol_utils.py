@@ -306,13 +306,13 @@ def get_diff_pistol(img1, img2, index, thresh=10):
     print("circles = ", len(circles))
     cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/result"+str(index)+".jpg", output) #np.hstack([image, output]))
 
-
+'''
 img1 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\pistol6\\3_before.jpg"
 img2 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\pistol6\\3_after.jpg"
 img1 = cv2.imread(img1,0)
 img2 = cv2.imread(img2,0)
 get_diff_align(img1, img2,4)
-
+'''
 '''
 #print(img.shape)
 imgs2 = cropImage(img2, 5)
