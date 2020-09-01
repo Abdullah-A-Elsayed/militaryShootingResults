@@ -436,9 +436,9 @@ def showOpenCVWindow(img):
     img_height = img.shape[0]
     img_width = img.shape[1]
     if (img_width > img_height):
-        img_resized = image_resize(img, width=widthScreen - widthScreen // 5)
+        img_resized = image_resize(img, width=widthScreen - 2*widthScreen // 5)
     else:
-        img_resized = image_resize(img, height=heightScreen - heightScreen // 5)
+        img_resized = image_resize(img, height=heightScreen - 2*heightScreen // 5)
 
     height = img_resized.shape[0]
     width = img_resized.shape[1]

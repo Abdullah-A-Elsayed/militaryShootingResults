@@ -4,6 +4,7 @@ import pistol_utils
 import cap
 from enum import Enum
 from draw_circles import draw_circles
+from cvUtils import showOpenCVWindow
 
 class ShootingStringTypes():
     AK47 =  "آلي نهاري"
@@ -333,12 +334,14 @@ class ShootingResults:
     
     def begin_shooting(self):
         #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_before.jpg")
+        #full_image = imread_unicode(full_image_path)
         #full_image_path = self.save_path+str(self.current_id)+"_full_before.jpg"
         if self.shooting_type == ShootingTypes.PISTOL:
            full_image_path =  get_configuration("PATHS","Sample1")
         else:
            full_image_path =  get_configuration("PATHS","AKSample1")
         full_image = cv2.imread(full_image_path)
+        showOpenCVWindow(full_image)
         #cv2.imshow('png',full_image)
         cropped_images = self.cropImage(full_image)
         print("length=",len(cropped_images))
@@ -359,12 +362,14 @@ class ShootingResults:
     path: save path of resulting image for each target'''
     def end_shooting(self):
         #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_after.jpg")
+        #full_image = imread_unicode(full_image_path)
         #full_image_path = self.save_path+str(self.current_id)+"_full_after.jpg"
         if self.shooting_type == ShootingTypes.PISTOL:
            full_image_path =  get_configuration("PATHS","Sample2")
         else:
            full_image_path =  get_configuration("PATHS","AKSample2")
         full_image = cv2.imread(full_image_path)
+        showOpenCVWindow(full_image)
         cropped_images = self.cropImage(full_image)
         end_images = []
         if(len(cropped_images) >= self.num_shooters):

@@ -212,7 +212,7 @@ def process(img):
     ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop.jpg",detectionImage_paper)
     ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop_shape1.jpg",output)
     ##cv2.imwrite(savePath,detectionImage_shape)
-    return detectionImage_shape
+    return output
 
 
 def process_and_get_diff_ak_kk(bef_img, aft_img, idx=None):
@@ -600,6 +600,7 @@ def process_and_get_diff_ak_loop(before_image, after_image):#, idx=None):
     #Kernel_sharpen = np.array([[-1,-1,-1], [-1, 9,-1],[-1,-1,-1]])
     #diff = cv2.filter2D(diff, -1, Kernel_sharpen)
     print("diff shape",diff.shape)
+    '''
     n_diff = np.zeros_like(diff)
     alpha = 2.0 # Simple contrast control
     beta = 50    # Simple brightness control
@@ -613,6 +614,7 @@ def process_and_get_diff_ak_loop(before_image, after_image):#, idx=None):
     n_diff = cv2.LUT(diff, lookUpTable)
     cv2.convertScaleAbs(diff, n_diff, alpha, beta)
     cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_sharpened_"+ str(idx) +".jpg",n_diff)
+    '''
     diff = cv2.threshold(diff,43,255,cv2.THRESH_BINARY)[1]
     cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_blurred_threshed_"+ str(idx) +".jpg",diff)
     #cv2.imshow("diff_after_gauss", diff)
@@ -733,7 +735,7 @@ def cropImage(img, numberOfShapes):
     return imgList
 #img2_path = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\1"
 #img1 = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\2.jpg"
-'''
+
 img1 = "C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/results2/teste - Copy/3_before.jpg"
 img2 = "C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/results2/teste - Copy/3_after.jpg"
 img1 = "C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/results/testh/3_before.jpg"
@@ -745,8 +747,8 @@ img2 = cv2.imread(img2)
 #img2 = cv2.fastNlMeansDenoising(img2,None,10,21,21)
 #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/denoise3.jpg", img2)
 diff_img,toPlotImg, min_cnt = process_and_get_diff_ak_loop(img1, img2)
-count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath, min_cnt)
-'''
+score = count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath, min_cnt)
+print(score)
 '''
 save_path = "C:/Users/Abdallah Reda/Desktop/test_ak/"
 #img2 = cv2.imread(img2)
@@ -770,4 +772,21 @@ for i in range(len(cropped1)):
 
 #processed1 = process(cropped2[4])
 ##cv2.imwrite(save_path+"proc1_4.jpg", processed1)
+'''
+
+'''
+save_path = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results\\test"
+start = 'c'
+for i in range(0,ord('j')-ord('c')):
+    folder = save_path+ chr(ord(start)+i) +'\\'
+    print(folder)
+    for j in range(1,6):
+        img1 = folder + str(j)+'_cropped.jpg'
+        img2 = folder + str(j)+'_cropped_after.jpg'
+        img1 = cv2.imread(img1)
+        img2 = cv2.imread(img2)
+        processed1 = process(img1)
+        processed2 = process(img2)
+        cv2.imwrite(folder+"proc1_"+str(j)+".jpg", processed1)
+        cv2.imwrite(folder+"proc2_"+str(j)+".jpg", processed2)
 '''

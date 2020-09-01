@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib.colors import hsv_to_rgb
 
 import cvUtils
-from cvUtils import avgBrightness
+from cvUtils import *
 #from count_holes import count_holes
 import time
 
@@ -23,7 +23,110 @@ def __getFirstPistolTargetShapeContour(contours, shape_area):
             return cnt
 
     return None
+#(hMin = 0 , sMin = 64, vMin = 0), (hMax = 179 , sMax = 255, vMax = 255)
 
+def process(img):
+    # cv2.imshow("img",img)
+    # cv2.waitKey(0)
+    #img = cv2.imread(imgPath)
+    #gray = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/blue.jpg",gray)
+    ## convert to hsv
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    ## mask of blue (140,70,65) ~ (210, 44, 35)
+    mask_shapeblue = cv2.inRange(hsv, (0,64,0), (180, 255, 255))
+    #mask_shapeblue = cv2.inRange(hsv, (0,25,0), (180, 255, 255))
+
+    ## final mask and masked
+    #mask = cv2.bitwise_or(mask1, mask2)
+    mask_shape_inverted = cv2.bitwise_not(mask_shapeblue)
+    #kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,9))
+    #mask_shape_eroded = cv2.morphologyEx(mask_shape_inverted, cv2.MORPH_DILATE, kernel,iterations=1)
+    #mask_shape_eroded = cv2.morphologyEx(mask_shape_eroded, cv2.MORPH_ERODE, kernel,iterations=2)
+    mask_shape_inverted = cv2.medianBlur(mask_shape_inverted, 15)
+    # kernel = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(11, 11))
+    # thresholded_img = cv2.morphologyEx(thresholded_img, cv2.MORPH_CLOSE, kernel, iterations=3)
+
+    mask_shape_inverted = cv2.GaussianBlur(mask_shape_inverted, (5, 5), 0)
+    cv2.imshow("mask",mask_shape_inverted)
+    cv2.waitKey(0)
+    #crop white paper from whole image
+    contours, hierarchy = cv2.findContours(mask_shape_inverted, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    #print("contours length in ak47 process whole shape",len(contours))
+    largest_area = sorted(contours, key=cv2.contourArea)[-2]
+    x, y, w, h = cv2.boundingRect(largest_area)
+    detectionImage_paper = img[y:y+h, x:x+w]
+    # cv2.imshow("paper",detectionImage_paper)
+    # cv2.waitKey(0)
+
+    #crop black shape from white paper
+    detectionImage_paper_gray = cv2.cvtColor(detectionImage_paper, cv2.COLOR_BGR2GRAY)
+    detectionImage_paper_gray = cv2.morphologyEx(detectionImage_paper_gray, cv2.MORPH_ERODE, kernel,iterations=3)
+    detectionImage_paper_gray = cv2.morphologyEx(detectionImage_paper_gray, cv2.MORPH_DILATE, kernel,iterations=4)
+    detectionImage_paper_bin = cv2.threshold(detectionImage_paper_gray, 85, 255, cv2.THRESH_BINARY)[1] #to be parameterized
+    detectionImage_paper_bin = cv2.Canny(detectionImage_paper_bin,30,100)
+    #cv2.imshow("paper_edged",detectionImage_paper_bin)
+    #cv2.waitKey(0)
+    '''
+    contours, hierarchy = cv2.findContours(detectionImage_paper_bin, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    #print("contours length in ak47 process paper ",len(contours))
+
+    largest_areas = sorted(contours, key=cv2.contourArea)
+    #print("contours length in ak47 process whole shape,",len(contours))
+    largest_area = largest_areas[-1]
+    #for l in largest_areas:
+    #    print(cv2.contourArea(l))
+    x, y, w, h = cv2.boundingRect(largest_area)
+    detectionImage_shape = detectionImage_paper[y-50:y+h+50, x-50:x+w+50]
+    largest_area-=[x-50,y-50]
+    epsilon = 0.001*cv2.arcLength(largest_area,True)
+    approx = cv2.approxPolyDP(largest_area,epsilon,True)
+
+    mask_shape = np.ones(detectionImage_shape.shape, dtype=np.uint8)
+    #print(mask_shape)
+    cv2.fillConvexPoly(mask_shape, largest_area, (0,0,0))
+    #cv2.imshow("mask_shape", mask_shape)
+    #cv2.waitKey(0)
+    #mask_shape = cv2.GaussianBlur(mask_shape,(11,11),0)
+    #print(mask_shape)
+    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/jagged.jpg",mask_shape)
+    #output = cv2.bitwise_and(detectionImage_shape, mask_shape)
+    output = detectionImage_shape.copy()
+    #print(output.shape, mask_shape.shape)
+    output[mask_shape.astype(np.bool)] = 255
+    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop.jpg",detectionImage_paper)
+    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop_shape1.jpg",output)
+    ##cv2.imwrite(savePath,detectionImage_shape)
+    return detectionImage_shape'
+    '''
+
+def cropImage2(img, numberOfShapes):
+    """
+
+    :type img: BGR Image
+    :type numberOfShapes: number of shapes to be found that are equally separated horizontally
+    METHOD ASSUMES UNIFORM SHAPES DISTRIBUTION ACROSS THE IMAGE
+    """
+
+    height, width, colors = img.shape
+    # print("Width of the image = ",width)
+    start = 370
+    width -= 520
+    width_cutoff = width // numberOfShapes
+    end = width_cutoff
+    imgList = []
+    cv2.imwrite("C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\npistol\\cropped.jpg", img[750:3100, start:width])
+    #n = 2
+    while end <= width:
+        image_crop = img[750:3100, start:end, :]       #may need vertical cutting
+        # cvUtils.plotCVImage(n, targetImage)
+        imgList.append(image_crop)
+        start = end
+        end += width_cutoff
+        # print("current width = ",start)
+        # n += 1
+    print(len(imgList))
+    return imgList
 def cropImage(img, numberOfShapes, removeBG = True):
     dark_orange = (100, 0, 140)
     light_orange = (225, 255, 255)
@@ -32,10 +135,12 @@ def cropImage(img, numberOfShapes, removeBG = True):
     mask = cv2.inRange(hsv_originalImage, dark_orange, light_orange)
     result = cv2.bitwise_and(img, img, mask=mask)
     result_gray = cv2.cvtColor(result, cv2.COLOR_RGB2GRAY)
+    cv2.imwrite("C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\npistol\\result_gray.jpg", result)
 
     # thresholding to remove background from foreground objects
 
     ret, thresholded_img = cv2.threshold(result_gray, 10, 255, cv2.THRESH_BINARY)
+    # ret, thresholded_img = cv2.threshold(result_gray, 10, 255, cv2.THRESH_BINARY)
     thresholded_img = cv2.medianBlur(thresholded_img, 15)
     # kernel = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(11, 11))
     # thresholded_img = cv2.morphologyEx(thresholded_img, cv2.MORPH_CLOSE, kernel, iterations=3)
@@ -47,6 +152,7 @@ def cropImage(img, numberOfShapes, removeBG = True):
 
     contours, bndRects = cvUtils.sort_contours(contours)
     cv2.drawContours(img_copy, contours, -1, (255, 0, 255), 16)
+    cv2.imwrite("C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\npistol\\plot.jpg", thresholded_img)
     contours = list(contours)
     print(len(contours))
     #print(contours.shape)
@@ -257,7 +363,8 @@ def get_diff_align(bef_img, aft_img, idx=None):
             cv2.circle(output, (c[0],c[1]), width//2, (0,0,255), 3)
             score+=1
     cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/res_"+str(idx) +".jpg",output)
-    return output, score, after_image
+    #return output, score, after_image
+    return diff, after_image_aligned, scale_contour(min_cnt, 0.95)
 
 def get_diff_pistol(img1, img2, index, thresh=10):
     #img1 = cv2.imread("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/test4_before.jpg", 0)
@@ -305,6 +412,7 @@ def get_diff_pistol(img1, img2, index, thresh=10):
 
     print("circles = ", len(circles))
     cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/result"+str(index)+".jpg", output) #np.hstack([image, output]))
+'''
 img1 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\pistol1\\result1.jpg"
 img1 = cv2.imread(img1)
 imgs1 = cropImage(img1, 5)
@@ -317,6 +425,7 @@ for image in imgs1[0]:
     #get_diff_align(*pair, i)
     i+=1
     #break
+'''
 '''
 img1 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\pistol6\\3_before.jpg"
 img2 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\pistol6\\3_after.jpg"
@@ -340,3 +449,16 @@ for pair in zip(imgs1[0], imgs2[0]):
 #get_diff_pistol(10)
 
 '''
+img1 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\npistol\\pistol1.jpg"
+img1 = cv2.imread(img1)
+imgs1 = cropImage2(img1, 5)
+i=1
+for image in imgs1:
+    #print(pair[0].shape, pair[1].shape)
+    cv2.imwrite("C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\npistol\\cropped_"+str(i)+".jpg", image) #np.hstack([image, output]))
+    process(image)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/cropped_2"+str(i)+".jpg", pair[1]) #np.hstack([image, output]))
+    #print(imgs2[1][i-1] - imgs1[1][i-1])
+    #get_diff_align(*pair, i)
+    i+=1
+    #break

@@ -3,6 +3,8 @@ import sharedGUI
 import os
 import math
 from PIL import ImageTk, Image
+from cvUtils import showOpenCVWindow
+from ImportLib import imread_unicode
 #sys.path.insert(1, "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\src\\backend")
 import ImportLib
 def lineResults (lineNo, buletsNoResult, shooterImageResult):
@@ -80,4 +82,7 @@ def showShooterImage(imgPath):
     # c.pack()
     # shooterTargetImage.mainloop()
     #print('start "'+imgPath+'"')
+
+    img = imread_unicode(imgPath)
+    showOpenCVWindow(img)
     os.system('"'+imgPath+'"')

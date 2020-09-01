@@ -24,6 +24,17 @@ def imwrite_unicode(dirname, file_name, frame):
     cv2.imwrite(file_name, frame)
     os.chdir(script_path)
 
+def imread_unicode(imgPath):
+    print(imgPath)
+    idx = imgPath.rfind('\\')
+    dirname, file_name = imgPath[:idx+1], imgPath[idx+1:]
+    script_path = os.getcwd()
+    os.chdir(dirname)
+    #frame = cv2.imread('C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\50.jpg')
+    img = cv2.imread(file_name)
+    os.chdir(script_path)
+    return img
+
 config = configparser.ConfigParser()
 config.read('conf.ini')
 def get_configuration(section, key):
