@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from matplotlib.colors import hsv_to_rgb
-
+from skimage.measure import compare_ssim
 import cvUtils
 from cvUtils import *
 #from count_holes import count_holes
@@ -25,108 +25,7 @@ def __getFirstPistolTargetShapeContour(contours, shape_area):
     return None
 #(hMin = 0 , sMin = 64, vMin = 0), (hMax = 179 , sMax = 255, vMax = 255)
 
-def process(img):
-    # cv2.imshow("img",img)
-    # cv2.waitKey(0)
-    #img = cv2.imread(imgPath)
-    #gray = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
-    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/blue.jpg",gray)
-    ## convert to hsv
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    ## mask of blue (140,70,65) ~ (210, 44, 35)
-    mask_shapeblue = cv2.inRange(hsv, (0,64,0), (180, 255, 255))
-    #mask_shapeblue = cv2.inRange(hsv, (0,25,0), (180, 255, 255))
 
-    ## final mask and masked
-    #mask = cv2.bitwise_or(mask1, mask2)
-    mask_shape_inverted = cv2.bitwise_not(mask_shapeblue)
-    #kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,9))
-    #mask_shape_eroded = cv2.morphologyEx(mask_shape_inverted, cv2.MORPH_DILATE, kernel,iterations=1)
-    #mask_shape_eroded = cv2.morphologyEx(mask_shape_eroded, cv2.MORPH_ERODE, kernel,iterations=2)
-    mask_shape_inverted = cv2.medianBlur(mask_shape_inverted, 15)
-    # kernel = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(11, 11))
-    # thresholded_img = cv2.morphologyEx(thresholded_img, cv2.MORPH_CLOSE, kernel, iterations=3)
-
-    mask_shape_inverted = cv2.GaussianBlur(mask_shape_inverted, (5, 5), 0)
-    cv2.imshow("mask",mask_shape_inverted)
-    cv2.waitKey(0)
-    #crop white paper from whole image
-    contours, hierarchy = cv2.findContours(mask_shape_inverted, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    #print("contours length in ak47 process whole shape",len(contours))
-    largest_area = sorted(contours, key=cv2.contourArea)[-2]
-    x, y, w, h = cv2.boundingRect(largest_area)
-    detectionImage_paper = img[y:y+h, x:x+w]
-    # cv2.imshow("paper",detectionImage_paper)
-    # cv2.waitKey(0)
-
-    #crop black shape from white paper
-    detectionImage_paper_gray = cv2.cvtColor(detectionImage_paper, cv2.COLOR_BGR2GRAY)
-    detectionImage_paper_gray = cv2.morphologyEx(detectionImage_paper_gray, cv2.MORPH_ERODE, kernel,iterations=3)
-    detectionImage_paper_gray = cv2.morphologyEx(detectionImage_paper_gray, cv2.MORPH_DILATE, kernel,iterations=4)
-    detectionImage_paper_bin = cv2.threshold(detectionImage_paper_gray, 85, 255, cv2.THRESH_BINARY)[1] #to be parameterized
-    detectionImage_paper_bin = cv2.Canny(detectionImage_paper_bin,30,100)
-    #cv2.imshow("paper_edged",detectionImage_paper_bin)
-    #cv2.waitKey(0)
-    '''
-    contours, hierarchy = cv2.findContours(detectionImage_paper_bin, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    #print("contours length in ak47 process paper ",len(contours))
-
-    largest_areas = sorted(contours, key=cv2.contourArea)
-    #print("contours length in ak47 process whole shape,",len(contours))
-    largest_area = largest_areas[-1]
-    #for l in largest_areas:
-    #    print(cv2.contourArea(l))
-    x, y, w, h = cv2.boundingRect(largest_area)
-    detectionImage_shape = detectionImage_paper[y-50:y+h+50, x-50:x+w+50]
-    largest_area-=[x-50,y-50]
-    epsilon = 0.001*cv2.arcLength(largest_area,True)
-    approx = cv2.approxPolyDP(largest_area,epsilon,True)
-
-    mask_shape = np.ones(detectionImage_shape.shape, dtype=np.uint8)
-    #print(mask_shape)
-    cv2.fillConvexPoly(mask_shape, largest_area, (0,0,0))
-    #cv2.imshow("mask_shape", mask_shape)
-    #cv2.waitKey(0)
-    #mask_shape = cv2.GaussianBlur(mask_shape,(11,11),0)
-    #print(mask_shape)
-    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/jagged.jpg",mask_shape)
-    #output = cv2.bitwise_and(detectionImage_shape, mask_shape)
-    output = detectionImage_shape.copy()
-    #print(output.shape, mask_shape.shape)
-    output[mask_shape.astype(np.bool)] = 255
-    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop.jpg",detectionImage_paper)
-    ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop_shape1.jpg",output)
-    ##cv2.imwrite(savePath,detectionImage_shape)
-    return detectionImage_shape'
-    '''
-
-def cropImage2(img, numberOfShapes):
-    """
-
-    :type img: BGR Image
-    :type numberOfShapes: number of shapes to be found that are equally separated horizontally
-    METHOD ASSUMES UNIFORM SHAPES DISTRIBUTION ACROSS THE IMAGE
-    """
-
-    height, width, colors = img.shape
-    # print("Width of the image = ",width)
-    start = 370
-    width -= 520
-    width_cutoff = width // numberOfShapes
-    end = width_cutoff
-    imgList = []
-    cv2.imwrite("C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\npistol\\cropped.jpg", img[750:3100, start:width])
-    #n = 2
-    while end <= width:
-        image_crop = img[750:3100, start:end, :]       #may need vertical cutting
-        # cvUtils.plotCVImage(n, targetImage)
-        imgList.append(image_crop)
-        start = end
-        end += width_cutoff
-        # print("current width = ",start)
-        # n += 1
-    print(len(imgList))
-    return imgList
 def cropImage(img, numberOfShapes, removeBG = True):
     dark_orange = (100, 0, 140)
     light_orange = (225, 255, 255)
@@ -184,6 +83,56 @@ def cropImage(img, numberOfShapes, removeBG = True):
     # cvUtils.createFigure([img, thresholded_img, img_copy],
     #                      ["original Image", "threshold_img", "Result"])
     return croppedOutImages, target_contours
+
+def get_diff_ssim(before, after, idx=None):
+    #before = cv2.imread(bef_img)
+    #after = cv2.imread(aft_img)
+    # before,_ = makwa(before,3)
+    # after,_ = makwa(after,3)
+
+    # cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\1_makwad.jpg', before)
+    # cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\2_makwad.jpg', after)
+    before,_=cvUtils.alignImages(before, after)
+    # Convert images to grayscale
+    before_gray = cv2.cvtColor(before, cv2.COLOR_BGR2GRAY)
+    after_gray = cv2.cvtColor(after, cv2.COLOR_BGR2GRAY)
+
+    # Compute SSIM between two images
+    (score, diff) = compare_ssim(before_gray, after_gray, full=True)
+    # The diff image contains the actual image differences between the two images
+    # and is represented as a floating point data type in the range [0,1] 
+    # so we must convert the array to 8-bit unsigned integers in the range
+    # [0,255] before we can use it with OpenCV
+    print(score)
+    diff = (diff * 255).astype("uint8")
+
+    # Threshold the difference image, followed by finding contours to
+    # obtain the regions of the two input images that differ
+    thresh = cv2.medianBlur(diff, 15)
+    #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\blurred.jpg', thresh)
+    thresh = cv2.threshold(thresh, 60, 255, cv2.THRESH_BINARY_INV)[1]
+    #thresh,_ = makwa(cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR), 2)
+    #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\threshed.jpg', thresh)
+    contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_DILATE, kernel)
+    '''
+    contours = contours[0] if len(contours) == 2 else contours[1]
+
+    contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
+
+    # The largest contour should be the new detected difference
+    if len(contour_sizes) > 0:
+        largest_contour = max(contour_sizes, key=lambda x: x[0])[1]
+        x,y,w,h = cv2.boundingRect(largest_contour)
+        cv2.rectangle(before, (x, y), (x + w, y + h), (36,255,12), 2)
+        cv2.rectangle(after, (x, y), (x + w, y + h), (36,255,12), 2)
+    '''
+    #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\1.jpg', before)
+    #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\2.jpg', after)
+    #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\'+str(idx)+'.jpg',diff)
+    return diff, after, None
 '''
 img = "C:/Users/Abdallah Reda/Desktop/test_pistol/DSC_0010 - Copy.JPG"
 img = cv2.imread(img)
@@ -449,6 +398,7 @@ for pair in zip(imgs1[0], imgs2[0]):
 #get_diff_pistol(10)
 
 '''
+'''
 img1 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\npistol\\pistol1.jpg"
 img1 = cv2.imread(img1)
 imgs1 = cropImage2(img1, 5)
@@ -462,3 +412,4 @@ for image in imgs1:
     #get_diff_align(*pair, i)
     i+=1
     #break
+'''

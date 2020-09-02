@@ -40,6 +40,7 @@ config.read('conf.ini')
 def get_configuration(section, key):
     return config[section][key]
 
+DEMO = True
 
 
 

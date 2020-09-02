@@ -85,4 +85,4 @@ def showShooterImage(imgPath):
 
     img = imread_unicode(imgPath)
     showOpenCVWindow(img)
-    os.system('"'+imgPath+'"')
+    #os.system('"'+imgPath+'"')

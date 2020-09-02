@@ -212,6 +212,8 @@ def process(img):
     ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop.jpg",detectionImage_paper)
     ##cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/output/final_crop_shape1.jpg",output)
     ##cv2.imwrite(savePath,detectionImage_shape)
+    if DEMO:
+        return detectionImage_shape
     return output
 
 

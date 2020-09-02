@@ -50,6 +50,8 @@ class mParams:
         return None
     def get_plot_image(self, newImg):
         return newImg
+    def get_blob_detector_params(self):
+        return None
 
 class AK47_params(mParams):
     # REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF2.jpg"
@@ -114,7 +116,9 @@ class AK47_params(mParams):
         diff = cv2.morphologyEx(diff, cv2.MORPH_DILATE, kernel,iterations=1)
         return diff
         '''
-        return ak47_utils.process_and_get_diff_ak(prevImg, newImg)
+        if DEMO:
+            return ak47_utils.process_and_get_diff_ak(prevImg, newImg)
+        return pistol_utils.get_diff_ssim(prevImg, newImg)
 
 
     def get_plot_image(self, newImg):
@@ -123,6 +127,36 @@ class AK47_params(mParams):
         #output = cv2.cvtColor(output, cv2.COLOR_GRAY2BGR)
         output = draw_circles(output)   #takes gray image, returns BGR image
         return output
+
+    def get_blob_detector_params(self):
+        params = cv2.SimpleBlobDetector_Params()
+
+        # Change thresholds
+        #params.minThreshold = 10
+        #params.maxThreshold = 220
+
+        # Filter by Area.
+        params.minThreshold = 0
+        params.maxThreshold = 150
+
+        # Filter by Area.
+        params.filterByArea = True
+        params.minArea = 80
+        params.maxArea = 600
+
+        # Filter by Circularity
+        params.filterByCircularity = False
+        params.minCircularity = 0.8
+
+        # Filter by Convexity
+        params.filterByConvexity = True
+        params.minConvexity = 0.8
+            
+        # Filter by Inertia
+        params.filterByInertia = True
+        params.minInertiaRatio = 0.4
+
+        return params
 
 class Pistol_params(mParams):
     # REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/Ref_bg.jpg"
@@ -138,15 +172,16 @@ class Pistol_params(mParams):
     hough_minRadius = 10
     hough_maxRadius = 24 # 10,15
     connected_components_min_area = 400
-    connected_components_max_area = 600
+    connected_components_max_area = 650
     res_plot_radius = 13
     res_plot_thickness = 14
     #index=0
     def cropImage(self, img, num_shooters):
         return pistol_utils.cropImage(img, num_shooters)[0]
     def process_image(self, img):
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        return img_gray
+        if DEMO:
+            return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        return img
     def get_difference(self, prevImg, newImg):
         '''
         if(len(prevImg.shape)>2):
@@ -170,7 +205,36 @@ class Pistol_params(mParams):
         #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/diff_bin_dilated"+str(index)+".jpg",bw1)
         return bw1,prevImg, newImg
         '''
-        return pistol_utils.get_diff_align(prevImg, newImg)
+        if DEMO:
+            return pistol_utils.get_diff_align(prevImg, newImg)
+        return pistol_utils.get_diff_ssim(prevImg, newImg)
+
+    def get_blob_detector_params(self):
+        params = cv2.SimpleBlobDetector_Params()
+
+        # Change thresholds
+        #params.minThreshold = 10
+        #params.maxThreshold = 220
+
+        # Filter by Area.
+        params.filterByArea = True
+        params.minArea = 300
+        params.maxArea = 500
+
+        # Filter by Circularity
+        params.filterByCircularity = True
+        params.minCircularity = 0.7
+
+        # Filter by Convexity
+        params.filterByConvexity = True
+        params.minConvexity = 0.8
+            
+        # Filter by Inertia
+        params.filterByInertia = True
+        params.minInertiaRatio = 0.4
+
+        return params
+
 class Morris_params(mParams):
     REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF2.jpg"
     HORIZONTAL_SEPARATOR_BEGIN = 1250
@@ -195,6 +259,10 @@ class Morris_params(mParams):
         return None
     def get_difference(self, prevImg, newImg, toPlotImg, resultPath):
         return None
+    def get_blob_detector_params(self):
+        return None
+
+    
 
 class ShootingResults:
 
@@ -310,6 +378,33 @@ class ShootingResults:
         #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
         imwrite_unicode(self.save_path, saveName, plotImage)
         return score
+    def count_and_plot_blobs(self, detectionImage, plotImage, saveName, min_cnt=None):
+        kernel=cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
+        detectionImage=cv2.morphologyEx(detectionImage,cv2.MORPH_ERODE,kernel,iterations=2)
+        
+        params = self.shooting_params.get_blob_detector_params()
+        # Create a detector with the parameters
+        ver = (cv2.__version__).split('.')
+        if int(ver[0]) < 3 :
+            detector = cv2.SimpleBlobDetector(params)
+        else : 
+            detector = cv2.SimpleBlobDetector_create(params)
+
+
+        # Detect blobs.
+        keypoints = detector.detect(detectionImage)
+
+        # Draw detected blobs as red circles.
+        # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
+        # the size of the circle corresponds to the size of blob
+
+        im_with_keypoints = cv2.drawKeypoints(plotImage, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+        print("Number of circular Blobs: " + str(len(keypoints)))
+        # Show blobs
+        #blob_path = "C://Users//Abdelrahman Ezzat//Desktop//toblob//blob.jpg" #" +""+
+        imwrite_unicode(self.save_path, saveName, im_with_keypoints)
+        return len(keypoints)
 
     def calculate_difference(self, previousImagePath, newImagePath, toPlotImagePath, resultPath):
         prev = cv2.imread(previousImagePath,0)
@@ -325,11 +420,13 @@ class ShootingResults:
     def calculate_difference_images(self, prevImg, newImg, toPlotImg, resultPath):
         #prev = cv2.imread(previousImagePath,0)
         #new = cv2.imread(newImagePath,0)
+        
         diff_img,toPlotImg, min_cnt = self.shooting_params.get_difference(prevImg, newImg)
         toPlotImg = self.shooting_params.get_plot_image(toPlotImg)
-        return self.count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath, min_cnt)
-        imwrite_unicode(self.save_path, resultPath, diff_img)
-        return score
+        if DEMO:
+            return self.count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath, min_cnt)
+        return self.count_and_plot_blobs(diff_img, toPlotImg,resultPath)
+
         
     
     def begin_shooting(self):
