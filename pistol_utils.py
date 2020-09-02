@@ -34,7 +34,7 @@ def cropImage(img, numberOfShapes, removeBG = True):
     mask = cv2.inRange(hsv_originalImage, dark_orange, light_orange)
     result = cv2.bitwise_and(img, img, mask=mask)
     result_gray = cv2.cvtColor(result, cv2.COLOR_RGB2GRAY)
-    cv2.imwrite("C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\npistol\\result_gray.jpg", result)
+    #cv2.imwrite("C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\npistol\\result_gray.jpg", result)
 
     # thresholding to remove background from foreground objects
 
@@ -51,7 +51,7 @@ def cropImage(img, numberOfShapes, removeBG = True):
 
     contours, bndRects = cvUtils.sort_contours(contours)
     cv2.drawContours(img_copy, contours, -1, (255, 0, 255), 16)
-    cv2.imwrite("C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\npistol\\plot.jpg", thresholded_img)
+    #cv2.imwrite("C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\npistol\\plot.jpg", thresholded_img)
     contours = list(contours)
     print(len(contours))
     #print(contours.shape)
@@ -83,13 +83,13 @@ def cropImage(img, numberOfShapes, removeBG = True):
     # cvUtils.createFigure([img, thresholded_img, img_copy],
     #                      ["original Image", "threshold_img", "Result"])
     return croppedOutImages, target_contours
-
-def get_diff_ssim(before, after, idx=None):
+idx = 1
+def get_diff_ssim(before, after, id=None):
     #before = cv2.imread(bef_img)
     #after = cv2.imread(aft_img)
     # before,_ = makwa(before,3)
     # after,_ = makwa(after,3)
-
+    global idx
     # cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\1_makwad.jpg', before)
     # cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\2_makwad.jpg', after)
     before,_=cvUtils.alignImages(before, after)
@@ -108,15 +108,15 @@ def get_diff_ssim(before, after, idx=None):
 
     # Threshold the difference image, followed by finding contours to
     # obtain the regions of the two input images that differ
-    thresh = cv2.medianBlur(diff, 15)
+    #thresh = cv2.medianBlur(diff, 15)
     #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\blurred.jpg', thresh)
-    thresh = cv2.threshold(thresh, 60, 255, cv2.THRESH_BINARY_INV)[1]
+    #thresh = cv2.threshold(thresh, 60, 255, cv2.THRESH_BINARY_INV)[1]
     #thresh,_ = makwa(cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR), 2)
     #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\threshed.jpg', thresh)
-    contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_DILATE, kernel)
+    #contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+    #thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    #thresh = cv2.morphologyEx(thresh, cv2.MORPH_DILATE, kernel)
     '''
     contours = contours[0] if len(contours) == 2 else contours[1]
 
@@ -132,6 +132,10 @@ def get_diff_ssim(before, after, idx=None):
     #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\1.jpg', before)
     #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\2.jpg', after)
     #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\'+str(idx)+'.jpg',diff)
+    kernel=cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
+    diff=cv2.morphologyEx(diff,cv2.MORPH_ERODE,kernel,iterations=2)
+    cv2.imwrite('C:\\Users\\Abdelrahman Ezzat\\Desktop\\lastTrial\\'+str(idx)+'.jpg',diff)
+    idx+=1
     return diff, after, None
 '''
 img = "C:/Users/Abdallah Reda/Desktop/test_pistol/DSC_0010 - Copy.JPG"
@@ -193,9 +197,9 @@ def get_diff_align(bef_img, aft_img, idx=None):
     # cv2.imshow("aft", after_image_aligned)
     # cv2.waitKey(0)
     eq = cv2.equalizeHist(after_image_aligned)
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/equalized_"+str(idx)+".jpg", eq)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/equalized_"+str(idx)+".jpg", eq)
     eq = cv2.Canny(after_image_aligned, 40, 120)
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/edged_"+str(idx)+".jpg", eq)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/edged_"+str(idx)+".jpg", eq)
     ret, i1 = cv2.threshold(after_image_aligned, 10, 255, cv2.THRESH_BINARY)
     i1 = cv2.medianBlur(i1, 15)
     # kernel = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(11, 11))
@@ -249,7 +253,7 @@ def get_diff_align(bef_img, aft_img, idx=None):
     #img2 = IDMatcher(img1, "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_11.jpg")
     #cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/pistol/cropped_21_edit.jpg",img2)
     diff = cv2.absdiff(after_image_aligned,before_image)
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/absdiff_"+ str(idx) +".jpg",diff)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/absdiff_"+ str(idx) +".jpg",diff)
     k1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7,7))
     k2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (11,11))
     #diff = cv2.threshold(diff,25,255,cv2.THRESH_BINARY)[1]
@@ -258,12 +262,12 @@ def get_diff_align(bef_img, aft_img, idx=None):
     diff = cv2.morphologyEx(diff, cv2.MORPH_DILATE, k1, iterations=1)
     diff = cv2.GaussianBlur(diff, (5,5), 2)
     diff = cv2.threshold(diff,70,255,cv2.THRESH_BINARY)[1]
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/thresh_"+ str(idx) +".jpg",diff)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/thresh_"+ str(idx) +".jpg",diff)
     diff = cv2.morphologyEx(diff, cv2.MORPH_ERODE, k1, iterations=1)
     # cv2.imshow('diff_eroded', diff)
     # cv2.waitKey(0)
     diff = cv2.morphologyEx(diff, cv2.MORPH_DILATE, k2, iterations=2)
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/diff_dilated_"+ str(idx) +".jpg",diff)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/diff_dilated_"+ str(idx) +".jpg",diff)
     # cv2.imshow('diff_dilated', diff)
     # cv2.waitKey(0)
     '''
@@ -311,7 +315,7 @@ def get_diff_align(bef_img, aft_img, idx=None):
         if(800 <= area <= 1200): 
             cv2.circle(output, (c[0],c[1]), width//2, (0,0,255), 3)
             score+=1
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/res_"+str(idx) +".jpg",output)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/test_pistol/res_"+str(idx) +".jpg",output)
     #return output, score, after_image
     return diff, after_image_aligned, scale_contour(min_cnt, 0.95)
 
@@ -334,13 +338,13 @@ def get_diff_pistol(img1, img2, index, thresh=10):
     img1 = cv2.resize(img1, max_shape)
     img2 = cv2.resize(img2, max_shape)
     diff = cv2.absdiff(img2,img1)
-    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/diff_gray"+str(index)+".jpg",diff)
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/diff_gray"+str(index)+".jpg",diff)
     bw1 = cv2.threshold(diff, thresh, 255, cv2.THRESH_BINARY)[1]
-    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/diff_bin"+str(index)+".jpg",bw1)
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/diff_bin"+str(index)+".jpg",bw1)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(19,19))
     bw1 = cv2.dilate(bw1,kernel,iterations = 1)
-    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/diff_bin_dilated"+str(index)+".jpg",bw1)
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/diff_bin_dilated"+str(index)+".jpg",bw1)
 
     circles = cv2.HoughCircles(bw1,cv2.HOUGH_GRADIENT,1,minDist=15, param1=118,param2=8,minRadius=9,maxRadius=17 , ) # 10,15
     if circles is not None:
@@ -360,7 +364,7 @@ def get_diff_pistol(img1, img2, index, thresh=10):
             #print("Dasdaoajoijnsss")
 
     print("circles = ", len(circles))
-    cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/result"+str(index)+".jpg", output) #np.hstack([image, output]))
+    #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_pistol/result"+str(index)+".jpg", output) #np.hstack([image, output]))
 '''
 img1 = "C:\\Users\\Abdelrahman Ezzat\\Desktop\\project_vc\\results\\results2\\pistol1\\result1.jpg"
 img1 = cv2.imread(img1)

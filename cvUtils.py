@@ -58,6 +58,36 @@ def alignImages(im1, im2):
     im1Reg = cv2.warpPerspective(im1, h, (width, height))
 
     return im1Reg, h
+
+def kmeans_quantization(image, clusters=8, rounds=1):
+    h, w = image.shape[:2]
+    #samples = np.zeros([h*w,3], dtype=np.float32)
+    #count = 0
+
+    #for x in range(h):
+    #    for y in range(w):
+    #        samples[count] = image[x][y]
+    #        count += 1
+    samples = image.reshape(-1, image.shape[-1]).astype(np.float32)
+    #print((samples==samples2).all())
+    #print(samples2)
+    compactness, labels, centers = cv2.kmeans(samples,
+            clusters, 
+            None,
+            (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10000, 0.0001), 
+            rounds, 
+            cv2.KMEANS_RANDOM_CENTERS)
+    #print(len(labels))
+    #print(image.shape[0]*image.shape[1])
+    centers = np.uint8(centers)
+    print(centers)
+    sorted_centers = centers.tolist()
+    sorted_centers.sort(key = lambda x: sum(x)/len(x))
+    print(sorted_centers)
+    shape_color = sorted_centers[-1]
+    res = centers[labels.flatten()]
+    return res.reshape((image.shape)), sorted_centers
+
 def get_center(cnt):
     M = cv2.moments(cnt)
     if M["m00"] != 0:

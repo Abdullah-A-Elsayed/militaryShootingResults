@@ -3,6 +3,7 @@ from HelperFunc import *
 from IDNumberParser import *
 import cvUtils
 from draw_circles import draw_circles
+from skimage.measure import compare_ssim
 from cvUtils import *
 import time
 
@@ -395,12 +396,12 @@ def process_and_get_diff_ak(before_image, after_image):#, idx=None):
     diff = cv2.subtract(after_image_aligned,before_image)
     #cv2.imshow("diff", diff)
     #cv2.waitKey(0)
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_align_"+ str(idx) +".jpg",diff)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_align_"+ str(idx) +".jpg",diff)
     diff = cv2.threshold(diff,10,255,cv2.THRESH_BINARY)[1]
     #cv2.imshow("diff_bef_gauss", diff)
     #cv2.waitKey(0)
     diff = cv2.GaussianBlur(diff, (15,15), 2)
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_blurred_"+ str(idx) +".jpg",diff)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_blurred_"+ str(idx) +".jpg",diff)
     #Kernel_sharpen = np.array([[-1,-1,-1], [-1, 9,-1],[-1,-1,-1]])
     #diff = cv2.filter2D(diff, -1, Kernel_sharpen)
     print("diff shape",diff.shape)
@@ -416,9 +417,9 @@ def process_and_get_diff_ak(before_image, after_image):#, idx=None):
         lookUpTable[0,i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
     n_diff = cv2.LUT(diff, lookUpTable)
     cv2.convertScaleAbs(diff, n_diff, alpha, beta)
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_sharpened_"+ str(idx) +".jpg",n_diff)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_sharpened_"+ str(idx) +".jpg",n_diff)
     diff = cv2.threshold(diff,50,255,cv2.THRESH_BINARY)[1]
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_blurred_threshed_"+ str(idx) +".jpg",diff)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_blurred_threshed_"+ str(idx) +".jpg",diff)
     #cv2.imshow("diff_after_gauss", diff)
     #cv2.waitKey(0)
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/diff_thresh_"+ str(idx) +".jpg",diff)
@@ -593,12 +594,12 @@ def process_and_get_diff_ak_loop(before_image, after_image):#, idx=None):
     diff = cv2.subtract(after_image_aligned,before_image)
     #cv2.imshow("diff", diff)
     #cv2.waitKey(0)
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_align_"+ str(idx) +".jpg",diff)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_align_"+ str(idx) +".jpg",diff)
     diff = cv2.threshold(diff,10,255,cv2.THRESH_BINARY)[1]
     #cv2.imshow("diff_bef_gauss", diff)
     #cv2.waitKey(0)
     diff = cv2.GaussianBlur(diff, (15,15), 5)
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_blurred_"+ str(idx) +".jpg",diff)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_blurred_"+ str(idx) +".jpg",diff)
     #Kernel_sharpen = np.array([[-1,-1,-1], [-1, 9,-1],[-1,-1,-1]])
     #diff = cv2.filter2D(diff, -1, Kernel_sharpen)
     print("diff shape",diff.shape)
@@ -618,7 +619,7 @@ def process_and_get_diff_ak_loop(before_image, after_image):#, idx=None):
     cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_sharpened_"+ str(idx) +".jpg",n_diff)
     '''
     diff = cv2.threshold(diff,43,255,cv2.THRESH_BINARY)[1]
-    cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_blurred_threshed_"+ str(idx) +".jpg",diff)
+    #cv2.imwrite("C:/Users/Abdelrahman Ezzat/Desktop/New folder/diff_blurred_threshed_"+ str(idx) +".jpg",diff)
     #cv2.imshow("diff_after_gauss", diff)
     #cv2.waitKey(0)
     #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/diff_thresh_"+ str(idx) +".jpg",diff)
@@ -706,7 +707,7 @@ def count_and_plot_connectedComponents(detectionImage, plotImage, saveName, min_
             if(20 <= area <= 150 and cv2.pointPolygonTest(min_cnt, (sx,sy), True) > 0):
                 score += 1
                 cv2.circle(plotImage, (c[0],c[1]), 8, (0,0,255), 2) #radius of width//2
-        cv2.imwrite(saveName,plotImage)
+        #cv2.imwrite(saveName,plotImage)
         #imwrite_unicode(self.save_path, saveName, plotImage)
         return score
 
@@ -735,9 +736,67 @@ def cropImage(img, numberOfShapes):
         # n += 1
     print(len(imgList))
     return imgList
+
+def get_diff_ssim(before, after, id=None):
+    global idx
+    #before = cv2.imread(bef_img)
+    #after = cv2.imread(aft_img)
+    # before,_ = makwa(before,3)
+    # after,_ = makwa(after,3)
+
+    # cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\1_makwad.jpg', before)
+    # cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\2_makwad.jpg', after)
+    before,_=cvUtils.alignImages(before, after)
+    # Convert images to grayscale
+    before_gray = cv2.cvtColor(before, cv2.COLOR_BGR2GRAY)
+    after_gray = cv2.cvtColor(after, cv2.COLOR_BGR2GRAY)
+
+    # Compute SSIM between two images
+    (score, diff) = compare_ssim(before_gray, after_gray, full=True)
+    # The diff image contains the actual image differences between the two images
+    # and is represented as a floating point data type in the range [0,1] 
+    # so we must convert the array to 8-bit unsigned integers in the range
+    # [0,255] before we can use it with OpenCV
+    print(score)
+    diff = (diff * 255).astype("uint8")
+    diff_c = cv2.cvtColor(diff, cv2.COLOR_GRAY2BGR)
+    thresh_3, _ = cvUtils.kmeans_quantization(diff_c, 3)
+    #cv2.imwrite('C:\\Users\\Abdelrahman Ezzat\\Desktop\\lastTrial\\'+idx+'_makwad3.jpg',thresh_3)
+    thresh_2, _ = cvUtils.kmeans_quantization(diff_c, 2)
+    diff = cv2.max(thresh_2, thresh_3)
+    #cv2.imwrite('C:\\Users\\Abdelrahman Ezzat\\Desktop\\lastTrial\\'+idx+'_makwad2.jpg',thresh_2)
+    #cv2.imwrite('C:\\Users\\Abdelrahman Ezzat\\Desktop\\lastTrial\\'+idx+'_makwad2x3.jpg',cv2.max(thresh_2, thresh_3))
+    # Threshold the difference image, followed by finding contours to
+    # obtain the regions of the two input images that differ
+    #thresh = cv2.medianBlur(diff, 15)
+    #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\blurred.jpg', thresh)
+    #thresh = cv2.threshold(thresh, 60, 255, cv2.THRESH_BINARY_INV)[1]
+    #thresh,_ = makwa(cv2.cvtColor(thresh, cv2.COLOR_GRAY2BGR), 2)
+    #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\threshed.jpg', thresh)
+    #contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+    #thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    #thresh = cv2.morphologyEx(thresh, cv2.MORPH_DILATE, kernel)
+    '''
+    contours = contours[0] if len(contours) == 2 else contours[1]
+
+    contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
+
+    # The largest contour should be the new detected difference
+    if len(contour_sizes) > 0:
+        largest_contour = max(contour_sizes, key=lambda x: x[0])[1]
+        x,y,w,h = cv2.boundingRect(largest_contour)
+        cv2.rectangle(before, (x, y), (x + w, y + h), (36,255,12), 2)
+        cv2.rectangle(after, (x, y), (x + w, y + h), (36,255,12), 2)
+    '''
+    #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\1.jpg', before)
+    #cv2.imwrite('C:\\Users\\Abdallah Reda\\Desktop\\lastTrial\\2.jpg', after)
+    cv2.imwrite('C:\\Users\\Abdelrahman Ezzat\\Desktop\\lastTrial\\'+str(idx)+'.jpg',diff)
+    idx+=1
+    return diff, after, None
 #img2_path = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\1"
 #img1 = "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\158\\friday14-8\\2.jpg"
-
+'''
 img1 = "C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/results2/teste - Copy/3_before.jpg"
 img2 = "C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/results2/teste - Copy/3_after.jpg"
 img1 = "C:/Users/Abdelrahman Ezzat/Desktop/project_vc/results/results/testh/3_before.jpg"
@@ -751,6 +810,7 @@ img2 = cv2.imread(img2)
 diff_img,toPlotImg, min_cnt = process_and_get_diff_ak_loop(img1, img2)
 score = count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath, min_cnt)
 print(score)
+'''
 '''
 save_path = "C:/Users/Abdallah Reda/Desktop/test_ak/"
 #img2 = cv2.imread(img2)

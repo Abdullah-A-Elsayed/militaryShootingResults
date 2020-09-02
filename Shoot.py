@@ -118,7 +118,7 @@ class AK47_params(mParams):
         '''
         if DEMO:
             return ak47_utils.process_and_get_diff_ak(prevImg, newImg)
-        return pistol_utils.get_diff_ssim(prevImg, newImg)
+        return ak47_utils.get_diff_ssim(prevImg, newImg)
 
 
     def get_plot_image(self, newImg):
@@ -137,11 +137,11 @@ class AK47_params(mParams):
 
         # Filter by Area.
         params.minThreshold = 0
-        params.maxThreshold = 150
+        params.maxThreshold = 100
 
         # Filter by Area.
         params.filterByArea = True
-        params.minArea = 80
+        params.minArea = 50
         params.maxArea = 600
 
         # Filter by Circularity
@@ -213,12 +213,12 @@ class Pistol_params(mParams):
         params = cv2.SimpleBlobDetector_Params()
 
         # Change thresholds
-        #params.minThreshold = 10
-        #params.maxThreshold = 220
+        params.minThreshold = 0
+        params.maxThreshold = 120
 
         # Filter by Area.
         params.filterByArea = True
-        params.minArea = 300
+        params.minArea = 350
         params.maxArea = 500
 
         # Filter by Circularity
@@ -378,10 +378,7 @@ class ShootingResults:
         #cv2.imwrite("C:/Users/Abdallah Reda/Desktop/test_ak/res_"+str(idx) +".jpg",output)
         imwrite_unicode(self.save_path, saveName, plotImage)
         return score
-    def count_and_plot_blobs(self, detectionImage, plotImage, saveName, min_cnt=None):
-        kernel=cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
-        detectionImage=cv2.morphologyEx(detectionImage,cv2.MORPH_ERODE,kernel,iterations=2)
-        
+    def count_and_plot_blobs(self, detectionImage, plotImage, saveName, min_cnt=None):        
         params = self.shooting_params.get_blob_detector_params()
         # Create a detector with the parameters
         ver = (cv2.__version__).split('.')
