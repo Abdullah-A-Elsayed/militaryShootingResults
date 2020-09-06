@@ -26,6 +26,7 @@ def imwrite_unicode(dirname, file_name, frame):
 
 def imread_unicode(imgPath):
     print(imgPath)
+    
     idx = imgPath.rfind('\\')
     dirname, file_name = imgPath[:idx+1], imgPath[idx+1:]
     script_path = os.getcwd()
@@ -33,17 +34,16 @@ def imread_unicode(imgPath):
     #frame = cv2.imread('C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\50.jpg')
     img = cv2.imread(file_name)
     os.chdir(script_path)
+    
+    #img = cv2.imread(imgPath.encode('utf-8', 'surrogateescape').decode('utf-8', 'surrogateescape'))
     return img
 
+def get_diffPath_from_resPath(resPath):
+    idx = resPath.rfind('_')
+    return resPath[:idx+1] + 'diff.jpg'
 config = configparser.ConfigParser()
 config.read('conf.ini')
 def get_configuration(section, key):
     return config[section][key]
 
-DEMO = True
-
-
-
-
-
-
+DEMO = False

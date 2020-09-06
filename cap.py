@@ -5,9 +5,10 @@ import datetime
 from ImportLib import get_configuration
 
 def func_TakeNikonPicture(input_filename):
+    ret = input_filename
     input_filename.replace(" ","\ ")
     camera_command = get_configuration("PATHS","digiCamControlPath")
-    camera_command_details = '/filename ' + '"'+ input_filename + '"'  + ' /capture /iso 500 /shutter 1/30 /aperture 1.8'
+    camera_command_details = '/filename ' + '"'+ input_filename + '"'  + ' /capture ' #/iso 500 /shutter 1/30 /aperture 1.8'
     print('camera details = ',camera_command_details)
     full_command=camera_command + ' ' + camera_command_details
     p = subprocess.Popen(full_command, stdout=subprocess.PIPE, universal_newlines=True, shell=False)
@@ -21,7 +22,7 @@ def func_TakeNikonPicture(input_filename):
     print('Command output: ' + str(output))
     print('Command err: ' + str(err))
 
-    return input_filename
+    return ret
 
 '''
 if(len(sys.argv) < 2):

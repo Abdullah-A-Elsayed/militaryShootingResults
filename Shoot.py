@@ -55,8 +55,8 @@ class mParams:
 
 class AK47_params(mParams):
     # REF_IMAGE = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/REF2.jpg"
-    HORIZONTAL_SEPARATOR_BEGIN = 1200
-    HORIZONTAL_SEPARATOR_END = 4000-1600
+    HORIZONTAL_SEPARATOR_BEGIN = 1425
+    HORIZONTAL_SEPARATOR_END = 2600
     VERTICAL_SEPARATOR = 1200
     MAX_SHOOTERS = 5
     THRESH_BINARY = 100#90
@@ -312,7 +312,7 @@ class ShootingResults:
         #    cv2.imwrite("C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/cropped_"+ str(i+1) + ".jpg", cropped_img)
         #    cropped_images.append(cropped_img)
         #    v_begin += self.shooting_params.VERTICAL_SEPARATOR
-        return self.shooting_params.cropImage(image, self.shooting_params.MAX_SHOOTERS) #self.num_shooters
+        return self.shooting_params.cropImage(image, self.num_shooters) #self.shooting_params.MAX_SHOOTERS
 
     def prepare_image(self, img, newImageName):
         #image = "C:/Users/Abdallah Reda/Downloads/CVC-19-Documnet-Wallet-/BackEnd/visionapp/Natinal_ID/Shoot2.jpg"
@@ -420,21 +420,26 @@ class ShootingResults:
         
         diff_img,toPlotImg, min_cnt = self.shooting_params.get_difference(prevImg, newImg)
         toPlotImg = self.shooting_params.get_plot_image(toPlotImg)
+        imwrite_unicode(self.save_path, get_diffPath_from_resPath(resultPath), diff_img)
         if DEMO:
             return self.count_and_plot_connectedComponents(diff_img, toPlotImg, resultPath, min_cnt)
+        #showOpenCVWindow(diff_img)
         return self.count_and_plot_blobs(diff_img, toPlotImg,resultPath)
 
         
     
     def begin_shooting(self):
-        #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_before.jpg")
-        #full_image = imread_unicode(full_image_path)
+
         #full_image_path = self.save_path+str(self.current_id)+"_full_before.jpg"
-        if self.shooting_type == ShootingTypes.PISTOL:
-           full_image_path =  get_configuration("PATHS","Sample1")
+        if DEMO:
+            if self.shooting_type == ShootingTypes.PISTOL:
+                full_image_path =  get_configuration("PATHS","Sample1")
+            else:
+                full_image_path =  get_configuration("PATHS","AKSample1")
+            full_image = cv2.imread(full_image_path)
         else:
-           full_image_path =  get_configuration("PATHS","AKSample1")
-        full_image = cv2.imread(full_image_path)
+            full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_before.jpg")
+            full_image = imread_unicode(full_image_path)
         showOpenCVWindow(full_image)
         #cv2.imshow('png',full_image)
         cropped_images = self.cropImage(full_image)
@@ -455,14 +460,18 @@ class ShootingResults:
     scores: list of ints which are the score of each target
     path: save path of resulting image for each target'''
     def end_shooting(self):
-        #full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_after.jpg")
-        #full_image = imread_unicode(full_image_path)
+        full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_after.jpg")
+        full_image = imread_unicode(full_image_path)
         #full_image_path = self.save_path+str(self.current_id)+"_full_after.jpg"
-        if self.shooting_type == ShootingTypes.PISTOL:
-           full_image_path =  get_configuration("PATHS","Sample2")
+        if DEMO:
+            if self.shooting_type == ShootingTypes.PISTOL:
+                full_image_path =  get_configuration("PATHS","Sample2")
+            else:
+                full_image_path =  get_configuration("PATHS","AKSample2")
+            full_image = cv2.imread(full_image_path)
         else:
-           full_image_path =  get_configuration("PATHS","AKSample2")
-        full_image = cv2.imread(full_image_path)
+            full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_after.jpg")
+            full_image = imread_unicode(full_image_path)
         showOpenCVWindow(full_image)
         cropped_images = self.cropImage(full_image)
         end_images = []

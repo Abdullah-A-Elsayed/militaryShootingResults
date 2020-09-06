@@ -4,7 +4,8 @@ import os
 import math
 from PIL import ImageTk, Image
 from cvUtils import showOpenCVWindow
-from ImportLib import imread_unicode
+import numpy as np
+from ImportLib import imread_unicode, get_diffPath_from_resPath
 #sys.path.insert(1, "C:\\Users\\Abdallah Reda\\Downloads\\CVC-19-Documnet-Wallet-\\BackEnd\\visionapp\\Natinal_ID\\src\\backend")
 import ImportLib
 def lineResults (lineNo, buletsNoResult, shooterImageResult):
@@ -84,5 +85,7 @@ def showShooterImage(imgPath):
     #print('start "'+imgPath+'"')
 
     img = imread_unicode(imgPath)
+    # diff_img = imread_unicode(get_diffPath_from_resPath(imgPath))
+    # showOpenCVWindow(np.hstack([img, diff_img]))
     showOpenCVWindow(img)
     #os.system('"'+imgPath+'"')
