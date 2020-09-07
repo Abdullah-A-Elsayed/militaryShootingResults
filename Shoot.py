@@ -460,8 +460,8 @@ class ShootingResults:
     scores: list of ints which are the score of each target
     path: save path of resulting image for each target'''
     def end_shooting(self):
-        full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_after.jpg")
-        full_image = imread_unicode(full_image_path)
+        # full_image_path = cap.func_TakeNikonPicture(self.save_path+str(self.current_id)+"_full_after.jpg")
+        # full_image = imread_unicode(full_image_path)
         #full_image_path = self.save_path+str(self.current_id)+"_full_after.jpg"
         if DEMO:
             if self.shooting_type == ShootingTypes.PISTOL:

@@ -46,4 +46,5 @@ config.read('conf.ini')
 def get_configuration(section, key):
     return config[section][key]
 
-DEMO = False
+DEMO = int(get_configuration("VALUES","DEMO"))
+
